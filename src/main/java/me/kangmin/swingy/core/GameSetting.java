@@ -1,4 +1,4 @@
-package me.kangmin.core;
+package me.kangmin.swingy.core;
 
 public interface GameSetting {
 }

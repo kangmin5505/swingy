@@ -1,14 +1,11 @@
-package me.kangmin;
+package me.kangmin.swingy;
 
-import me.kangmin.core.GameManager;
-import me.kangmin.enums.ViewMode;
+import me.kangmin.swingy.core.GameManager;
+import me.kangmin.swingy.enums.ViewMode;
 
-/**
- * Hello world!
- *
- */
-public class App 
+public class App
 {
+    private static final int ERROR_CODE = 2;
     public static void main( String[] args )
     {
         try {
@@ -18,7 +15,8 @@ public class App
             GameManager gameManager = new GameManager(viewMode);
             gameManager.run();
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
-            System.err.println("Please enter a valid argument: gui or console");
+            System.err.println("usage: java -jar swingy.jar [console | gui]");
+            System.exit(ERROR_CODE);
         }
     }
 }

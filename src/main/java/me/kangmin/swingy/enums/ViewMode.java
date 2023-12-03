@@ -1,4 +1,4 @@
-package me.kangmin.enums;
+package me.kangmin.swingy.enums;
 
 public enum ViewMode {
     GUI("gui"),

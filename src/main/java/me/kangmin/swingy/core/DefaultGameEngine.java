@@ -1,6 +1,6 @@
-package me.kangmin.core;
+package me.kangmin.swingy.core;
 
-import me.kangmin.view.GameView;
+import me.kangmin.swingy.view.GameView;
 
 public class DefaultGameEngine implements GameEngine {
     private GameView gameView;
@@ -11,6 +11,6 @@ public class DefaultGameEngine implements GameEngine {
 
     @Override
     public void run() {
-        gameView.showWindow();
+        gameView.run();
     }
 }
