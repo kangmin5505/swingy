@@ -2,21 +2,32 @@ package me.kangmin.swingy;
 
 import me.kangmin.swingy.core.GameManager;
 import me.kangmin.swingy.enums.ViewMode;
+import me.kangmin.swingy.exception.GameException;
 
 public class App
 {
     private static final int ERROR_CODE = 2;
-    public static void main( String[] args )
+    public static void main(String[] args)
     {
-        try {
-            String upperCasedArg = args[0].toUpperCase();
-            ViewMode viewMode = ViewMode.valueOf(upperCasedArg);
+        ViewMode viewMode = getViewMode(args);
 
+        try {
             GameManager gameManager = new GameManager(viewMode);
             gameManager.run();
-        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+        } catch (GameException e) {
+            System.err.println(e.getMessage());
+            System.exit(ERROR_CODE);
+        }
+    }
+
+    private static ViewMode getViewMode(String[] args) {
+        try {
+            String upperCasedArg = args[0].toUpperCase();
+            return ViewMode.valueOf(upperCasedArg);
+        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
             System.err.println("usage: java -jar swingy.jar [console | gui]");
             System.exit(ERROR_CODE);
         }
+        return null;
     }
 }

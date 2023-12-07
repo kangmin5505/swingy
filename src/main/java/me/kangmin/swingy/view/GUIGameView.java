@@ -1,9 +1,22 @@
 package me.kangmin.swingy.view;
 
+import me.kangmin.swingy.controller.GameController;
+import me.kangmin.swingy.core.GameManager;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class GUIGameView extends JFrame implements GameView {
+
+    private final GameManager gameManager;
+    private final GameController gameController;
+
+    public GUIGameView(GameManager gameManager, GameController gameController) {
+        this.gameManager = gameManager;
+        this.gameController = gameController;
+    }
+
+
     @Override
     public void run() {
         setTitle("Console Game View");
