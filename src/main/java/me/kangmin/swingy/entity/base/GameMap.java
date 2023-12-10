@@ -2,6 +2,8 @@ package me.kangmin.swingy.entity.base;
 
 import me.kangmin.swingy.entity.Player;
 import me.kangmin.swingy.enums.Move;
+import me.kangmin.swingy.enums.StudyType;
+import me.kangmin.swingy.enums.SubjectType;
 import me.kangmin.swingy.exception.ExceptionMessage;
 import me.kangmin.swingy.exception.GameException;
 
@@ -37,7 +39,7 @@ public class GameMap implements Serializable {
         if (canMove(move)) {
             this.playerCoordinate.moveBy(move.getDeltaX(), move.getDeltaY());
         }
-        return this.isCollisionToEntitys();
+        return this.isCollisionToEntities();
     }
 
     public void removeSubject() {
@@ -89,7 +91,7 @@ public class GameMap implements Serializable {
                 break;
         }
     }
-    private boolean isCollisionToEntitys() {
+    private boolean isCollisionToEntities() {
         return this.isCollisionWithEnemy() || this.isCollisionWithEnemyBoss();
     }
 
@@ -137,5 +139,10 @@ public class GameMap implements Serializable {
 
     public List<Coordinate> getSubSubjectCoordinates() {
         return this.subSubjectCoordinates;
+    }
+
+    public SubjectType getSubjectType() {
+        return this.mainSubjectCoordinate.equals(this.playerCoordinate) ?
+                SubjectType.MAIN : SubjectType.SUB;
     }
 }

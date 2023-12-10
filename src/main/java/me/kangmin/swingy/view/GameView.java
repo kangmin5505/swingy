@@ -1,7 +1,7 @@
 package me.kangmin.swingy.view;
 
 import me.kangmin.swingy.enums.Move;
-import me.kangmin.swingy.enums.SubjectType;
+import me.kangmin.swingy.enums.StudyType;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -12,33 +12,6 @@ public interface GameView {
     int HEIGHT =  (int) (WIDTH * RATIO);
     int MAIN_PANEL_WIDTH = WIDTH * 3 / 4;
     int SUB_PANEL_WIDTH = WIDTH - MAIN_PANEL_WIDTH;
-
-    List<String> INTRO_MENU = List.of(
-            "1. 새로운 게임 시작",
-            "2. 이전 게임 불러오기",
-            "3. 설정",
-            "4. 게임 종료"
-    );
-
-    List<String> SETTING_MENU = List.of(
-            "1. 화면 모드 변경",
-            "2. 데이터 초기화",
-            "3. 뒤로 가기"
-    );
-
-    List<String> MOVE_MENU = List.of(
-            IntStream.range(1, 5).mapToObj(i -> {
-                String description = Move.values()[i - 1].getDescription();
-                return String.format("%d. %s", i, description);
-            }).toArray(String[]::new)
-    );
-
-    List<String> ALLOCATED_SUBJECT_MENU = List.of(
-            IntStream.range(1, 3).mapToObj(i -> {
-                String description = SubjectType.values()[i - 1].getDescription();
-                return String.format("%d. %s", i, description);
-            }).toArray(String[]::new)
-    );
 
     void run();
 

@@ -4,6 +4,7 @@ import me.kangmin.swingy.dto.SubjectDto;
 import me.kangmin.swingy.dto.GameInfoDto;
 import me.kangmin.swingy.dto.PlayerDtos;
 import me.kangmin.swingy.enums.ResponseCode;
+import me.kangmin.swingy.enums.StudyType;
 import me.kangmin.swingy.enums.SubjectType;
 import me.kangmin.swingy.exception.GameException;
 import me.kangmin.swingy.request.SetNewGamePlayerRequest;
@@ -40,9 +41,7 @@ public class DefaultGameController implements GameController {
         String playerName = setNewGamePlayerRequest.getPlayerName();
         ResponseCode input = setNewGamePlayerRequest.getInput();
 
-        try {
-            Request.validate(playerName);
-        } catch (GameException e) {
+        if (setNewGamePlayerRequest.getResponseCode() == ResponseCode.FAILURE) {
             return ResponseCode.FAILURE;
         }
 
@@ -62,12 +61,12 @@ public class DefaultGameController implements GameController {
 
     @Override
     public SubjectDto doSubject(ResponseCode input) {
-        if (SubjectType.STUDY.ordinal() == input.ordinal()) {
+        if (StudyType.STUDY.ordinal() == input.ordinal()) {
             boolean isSuccess = this.gameService.studySubject();
-            return new SubjectDto(SubjectType.STUDY, isSuccess);
+            return new SubjectDto(SubjectType.MAIN, isSuccess);
         }
 
         boolean isSuccess = this.gameService.cheatSubject();
-        return new SubjectDto(SubjectType.CHEAT, isSuccess);
+        return new SubjectDto(SubjectType.SUB, isSuccess);
     }
 }

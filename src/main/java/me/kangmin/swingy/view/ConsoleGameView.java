@@ -8,6 +8,11 @@ import me.kangmin.swingy.dto.SubjectDto;
 import me.kangmin.swingy.enums.Page;
 import me.kangmin.swingy.enums.PlayerType;
 import me.kangmin.swingy.enums.ResponseCode;
+import me.kangmin.swingy.enums.SubjectType;
+import me.kangmin.swingy.enums.menu.IntroMenu;
+import me.kangmin.swingy.enums.menu.MoveMenu;
+import me.kangmin.swingy.enums.menu.SettingMenu;
+import me.kangmin.swingy.enums.menu.StudyMethodMenu;
 import me.kangmin.swingy.request.*;
 import me.kangmin.swingy.view.helper.Printer;
 
@@ -70,7 +75,7 @@ public class ConsoleGameView implements GameView {
         printer.gameMap(gameInfoDto);
         printer.player(gameInfoDto.getPlayer());
 
-        this.printer.menu(MOVE_MENU)
+        this.printer.menu(MoveMenu.values())
                     .inputMessage();
 
         ResponseCode moveResponseCode = this.getNumberInput(MoveRequest.class);
@@ -81,13 +86,27 @@ public class ConsoleGameView implements GameView {
     }
 
     private Page procAllocatedSubject() {
-        this.printer.menu(ALLOCATED_SUBJECT_MENU)
+        this.printer.menu(StudyMethodMenu.values())
                     .inputMessage();
 
         ResponseCode allocatedSubectResponseCode = this.getNumberInput(AllocatedSubjectRequest.class);
         SubjectDto subjectDto = this.gameController.doSubject(allocatedSubectResponseCode);
 
-        return subjectDto.isSuccess() ? Page.GAME_PLAY : Page.Game_OVER;
+        if (!subjectDto.isSuccess()) {
+            return Page.Game_OVER;
+        }
+
+        if (subjectDto.getSubjectType() == SubjectType.MAIN) {
+//            subjectDto.getArtifact().ifPresent(artifact -> {
+//                this.printer.artifact(artifact)
+//                            .inputMessage();
+//                ResponseCode numberInput = this.getNumberInput(ArtifactRequest.class);
+//                if (numberInput.ordinal() == GET_ARTIFACT_MENU)
+//            });
+        }
+
+
+        return Page.GAME_PLAY;
     }
 
     private Page procSavedGamePage() {
@@ -107,10 +126,10 @@ public class ConsoleGameView implements GameView {
             return Page.WELCOME;
         }
 
-        this.printer.inputPlayerName()
-                    .inputMessage();
         ResponseCode setNewGameResponseCode = null;
         do {
+            this.printer.inputPlayerNameMessage()
+                        .inputMessage();
             String playerName = this.getStringInput();
             SetNewGamePlayerRequest setNewGamePlayerRequest = new SetNewGamePlayerRequest(playerName, selectNewPlayerResponseCode);
             setNewGameResponseCode =  this.gameController.setNewGamePlayer(setNewGamePlayerRequest);
@@ -120,7 +139,7 @@ public class ConsoleGameView implements GameView {
     }
 
     private Page procSettingPage() {
-        this.printer.menu(SETTING_MENU)
+        this.printer.menu(SettingMenu.values())
                     .inputMessage();
 
         ResponseCode input = this.getNumberInput(SettingRequest.class);
@@ -134,7 +153,7 @@ public class ConsoleGameView implements GameView {
 
     private Page procWelcomePage() {
         this.printer.intro(getBanner(), getIntro())
-                    .menu(INTRO_MENU)
+                    .menu(IntroMenu.values())
                     .inputMessage();
 
         ResponseCode input = this.getNumberInput(WelcomeRequest.class);
@@ -169,7 +188,7 @@ public class ConsoleGameView implements GameView {
     }
 
     private boolean procIfFailure(String input) {
-        if (input == null || input.isEmpty()) {
+        if (input == null || input.isBlank()) {
             this.printer.mismatchMessage()
                         .inputMessage();
             return true;

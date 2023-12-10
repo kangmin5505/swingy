@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import me.kangmin.swingy.enums.ResponseCode;
 
-public class SetNewGamePlayerRequest {
+public class SetNewGamePlayerRequest implements Request {
     public static int MIN_PLAYER_NAME_LENGTH = 1;
     public static int MAX_PLAYER_NAME_LENGTH = 10;
     @NotNull
@@ -23,5 +23,10 @@ public class SetNewGamePlayerRequest {
 
     public ResponseCode getInput() {
         return input;
+    }
+
+    @Override
+    public ResponseCode getResponseCode() {
+        return this.validate(this);
     }
 }

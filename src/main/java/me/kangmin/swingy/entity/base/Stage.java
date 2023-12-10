@@ -36,4 +36,9 @@ public class Stage implements Serializable {
     public int getTotalStage() {
         return STAGE_BOSS_MAP.size();
     }
+
+    public int getTotalSubSubjectCnt() {
+        return (this.stage - 1) * 5 + 10 - (this.stage % 2);
+
+    }
 }

@@ -1,8 +1,10 @@
 package me.kangmin.swingy.entity;
 
 import me.kangmin.swingy.entity.base.Level;
+import me.kangmin.swingy.entity.base.Stage;
 import me.kangmin.swingy.entity.base.Stat;
 import me.kangmin.swingy.enums.PlayerType;
+import me.kangmin.swingy.enums.SubjectType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -51,8 +53,8 @@ public class Player implements Serializable {
         return this.level.getExperience();
     }
 
-    public int getNeededExperience() {
-        return this.level.getNeededExperience();
+    public int getTotalNeededExperience() {
+        return this.level.getTotalNeededExperience();
     }
 
     public Stat getStat() {
@@ -63,11 +65,11 @@ public class Player implements Serializable {
         return this.artifacts;
     }
 
-    public void increaseExperience(int experience) {
-        this.level.increaseExperience(experience);
-    }
-
     public String getName() {
         return this.name;
+    }
+
+    public void studySubject(Stage stage, SubjectType subjectType) {
+        this.level.studySubject(stage, subjectType);
     }
 }

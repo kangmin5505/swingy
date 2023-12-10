@@ -1,24 +1,18 @@
 package me.kangmin.swingy.enums;
 
 public enum Move {
-    UP(0, -1, "위로 이동"),
-    DOWN(0, 1, "아래로 이동"),
-    LEFT(-1, 0, "왼쪽으로 이동"),
-    RIGHT(1, 0, "오른쪽으로 이동")
+    UP(0, -1),
+    DOWN(0, 1),
+    LEFT(-1, 0),
+    RIGHT(1, 0)
     ;
 
     private final int deltaX;
     private final int deltaY;
-    private final String description;
 
-    Move(int deltaX, int deltaY, String description) {
+    Move(int deltaX, int deltaY) {
         this.deltaX = deltaX;
         this.deltaY = deltaY;
-        this.description = description;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 
     public int getDeltaX() {

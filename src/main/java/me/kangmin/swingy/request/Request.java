@@ -22,10 +22,8 @@ public interface Request {
         return ResponseCode.values()[input - 1];
     }
 
-    static void validate(String input) {
-        Set<ConstraintViolation<String>> validate = validator.validate(input);
-        if (!validate.isEmpty()) {
-            throw new GameException(ExceptionMessage.VALIDATION);
-        }
+    default <T extends Request> ResponseCode validate(Request request) {
+        Set<ConstraintViolation<T>> validate = validator.validate((T) request);
+        return validate.isEmpty() ? ResponseCode.SUCCESS : ResponseCode.FAILURE;
     }
 }

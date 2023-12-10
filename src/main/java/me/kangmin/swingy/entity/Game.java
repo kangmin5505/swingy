@@ -76,6 +76,7 @@ public class Game implements Serializable {
     }
 
     private void finishSubject() {
+        this.player.studySubject(this.stage, this.gameMap.getSubjectType());
         this.gameMap.removeSubject();
     }
 }

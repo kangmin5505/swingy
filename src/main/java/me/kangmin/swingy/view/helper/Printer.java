@@ -8,6 +8,8 @@ import me.kangmin.swingy.entity.base.Coordinate;
 import me.kangmin.swingy.entity.base.GameMap;
 import me.kangmin.swingy.entity.base.Level;
 import me.kangmin.swingy.entity.base.Stat;
+import me.kangmin.swingy.enums.menu.IntroMenu;
+import me.kangmin.swingy.enums.menu.Menu;
 import me.kangmin.swingy.request.SetNewGamePlayerRequest;
 
 import java.util.ArrayList;
@@ -34,8 +36,13 @@ public class Printer {
         System.out.print("> ");
     }
 
-    public Printer menu(List<String> menu) {
-        menu.forEach(System.out::println);
+    public <T extends Menu<T>> Printer menu(Menu<T>[] menu) {
+        this.inputNumberMessage();
+
+        IntStream.range(1, menu.length + 1).forEach(i -> {
+            System.out.printf("%d. %s\n", i, menu[i - 1].getDescription());
+        });
+
         return this;
     }
 
@@ -46,10 +53,11 @@ public class Printer {
     public Printer players(PlayerDtos newPlayers) {
         List<PlayerDto> players = newPlayers.getPlayers();
 
-        System.out.println("플레이어 타입을 선택하세요.");
+        this.inputNumberMessage();
         IntStream.range(0, players.size()).forEach(i -> {
             this.newPlayer(i + 1, players.get(i));
         });
+
         System.out.printf("%d. 뒤로가기\n", players.size() + 1);
         return this;
     }
@@ -112,12 +120,11 @@ public class Printer {
         int totalStage = gameInfoDto.getTotalStage();
         String bossName = gameInfoDto.getBossName();
         System.out.println("[스테이지]");
-        System.out.printf("(%d / %d) %s\n", stage, totalStage, bossName);
+        System.out.printf("(%d / %d) %s\n", stage, totalStage - 1, bossName);
     }
 
     public void player(Player player) {
         Stat stat = player.getStat();
-
         String name = player.getName();
         String type = player.getType();
         int level = player.getLevel();
@@ -126,7 +133,8 @@ public class Printer {
         int health = stat.getHealth();
         int currentHealth = stat.getCurrentHealth();
         int experience = player.getExperience();
-        int neededExperience = player.getNeededExperience();
+        int neededExperience = player.getTotalNeededExperience();
+
         System.out.println("[플레이어]");
         System.out.printf("이름: %s\n", name);
         System.out.printf("타입(%s)\t레벨(%s/%s)\t코딩스킬(%s/%s)\t정신력(%s/%s)\t체력(%s/%s)\t경험치(%s/%s)\n",
@@ -134,10 +142,14 @@ public class Printer {
                 health, currentHealth, experience, neededExperience);
     }
 
-    public Printer inputPlayerName() {
-        System.out.printf("플레이어 이름을 입력하세요. (%d ~ %d자)",
+    public Printer inputPlayerNameMessage() {
+        System.out.printf("플레이어 이름을 입력하세요. (%d ~ %d자)\n",
                 SetNewGamePlayerRequest.MIN_PLAYER_NAME_LENGTH,
                 SetNewGamePlayerRequest.MAX_PLAYER_NAME_LENGTH);
         return this;
+    }
+
+    private void inputNumberMessage() {
+        System.out.println("번호를 입력하세요.");
     }
 }
