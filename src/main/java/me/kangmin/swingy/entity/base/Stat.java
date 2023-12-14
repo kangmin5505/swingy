@@ -1,5 +1,6 @@
 package me.kangmin.swingy.entity.base;
 
+import me.kangmin.swingy.entity.Player;
 import me.kangmin.swingy.enums.PlayerType;
 
 import java.io.Serializable;
@@ -7,6 +8,7 @@ import java.io.Serializable;
 public class Stat implements Serializable {
     public static final int PURE_STAT_LIMIT = 27;
     public static final int MAX_STAT_LIMIT = 42;
+    private final Player player;
     private int codingSkill;
     private int mentalStrength;
     private int health;
@@ -16,9 +18,17 @@ public class Stat implements Serializable {
     private final int healthIncrementAmount;
 
     public void levelUp() {
-        this.codingSkill = Math.min(this.codingSkill + this.codingSkillIncrementAmount, PURE_STAT_LIMIT);
-        this.mentalStrength = Math.min(this.mentalStrength + this.mentalStrengthIncrementAmount, PURE_STAT_LIMIT);
-        this.health = Math.min(this.health + this.healthIncrementAmount, PURE_STAT_LIMIT);
+        this.codingSkill = this.codingSkill + this.codingSkillIncrementAmount;
+        this.mentalStrength = this.mentalStrength + this.mentalStrengthIncrementAmount;
+        this.health = this.health + this.healthIncrementAmount;
+
+        this.player.getArtifacts().values()
+                .forEach(artifact -> {
+                    this.codingSkill += artifact.getCodingSkill();
+                    this.mentalStrength += artifact.getMentalStrength();
+                    this.health += artifact.getHealth();
+                });
+
         this.currentHealth = this.health;
     }
 
@@ -31,7 +41,8 @@ public class Stat implements Serializable {
     }
 
     // ========== constructor ==========
-    public Stat(PlayerType playerType) {
+    public Stat(Player player, PlayerType playerType) {
+        this.player = player;
         this.codingSkill = playerType.getCodingSkill();
         this.mentalStrength = playerType.getMentalStrength();
         this.health = playerType.getHealth();
@@ -56,8 +67,9 @@ public class Stat implements Serializable {
     }
 
     public int getMentalStrength() {
-        return this.mentalStrength;
+       return this.mentalStrength;
     }
+
 
     public int getHealth() {
         return this.health;
@@ -65,4 +77,5 @@ public class Stat implements Serializable {
     public int getCurrentHealth() {
         return this.currentHealth;
     }
+
 }

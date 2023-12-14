@@ -1,10 +1,8 @@
 package me.kangmin.swingy.core;
 
-import me.kangmin.swingy.controller.DefaultGameController;
 import me.kangmin.swingy.controller.GameController;
 import me.kangmin.swingy.enums.ViewMode;
 import me.kangmin.swingy.repository.FileGameRepository;
-import me.kangmin.swingy.service.DefaultGameService;
 import me.kangmin.swingy.service.GameService;
 import me.kangmin.swingy.view.ConsoleGameView;
 import me.kangmin.swingy.view.GUIGameView;
@@ -29,8 +27,8 @@ public class GameManager {
     // ========== constructor ==========
     public GameManager(ViewMode viewMode) {
         this.gameSetting = new DefaultGameSetting(viewMode);
-        GameService gameService = new DefaultGameService(new FileGameRepository());
-        this.gameController = new DefaultGameController(gameService);
+        GameService gameService = new GameService(new FileGameRepository());
+        this.gameController = new GameController(gameService);
 
         this.setGameView(this.gameSetting.getViewMode());
     }

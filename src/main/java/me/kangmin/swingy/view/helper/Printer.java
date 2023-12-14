@@ -1,16 +1,20 @@
 package me.kangmin.swingy.view.helper;
 
+import me.kangmin.swingy.controller.request.SetNewPlayerNameRequest;
 import me.kangmin.swingy.dto.GameInfoDto;
 import me.kangmin.swingy.dto.PlayerDto;
-import me.kangmin.swingy.dto.PlayerDtos;
+import me.kangmin.swingy.dto.PlayersDto;
+import me.kangmin.swingy.entity.Artifact;
 import me.kangmin.swingy.entity.Player;
 import me.kangmin.swingy.entity.base.Coordinate;
-import me.kangmin.swingy.entity.base.GameMap;
 import me.kangmin.swingy.entity.base.Level;
 import me.kangmin.swingy.entity.base.Stat;
-import me.kangmin.swingy.enums.menu.IntroMenu;
-import me.kangmin.swingy.enums.menu.Menu;
-import me.kangmin.swingy.request.SetNewGamePlayerRequest;
+import me.kangmin.swingy.exception.GameException;
+import me.kangmin.swingy.view.menu.ArtifactMenu;
+import me.kangmin.swingy.view.menu.Menu;
+import me.kangmin.swingy.view.menu.PlayerMenu;
+import me.kangmin.swingy.view.menu.SaveGameMenu;
+import me.kangmin.swingy.view.menu.element.MenuElement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +23,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Printer {
+    private final static char PLAYER_SYMBOL = '@';
+    private final static char MAIN_SUBJECT_SYMBOL = '$';
+    private final static char SUB_SUBJECT_SYMBOL = '#';
+    private final static int ENDING_TIME = 5000;
+
     public void clearConsole() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
@@ -27,20 +36,20 @@ public class Printer {
         System.out.println("게임을 종료합니다.");
     }
 
-    public Printer mismatchMessage() {
+    public void mismatchMessage() {
         System.out.println("잘못된 입력입니다.");
-        return this;
     }
 
     public void inputMessage() {
         System.out.print("> ");
     }
 
-    public <T extends Menu<T>> Printer menu(Menu<T>[] menu) {
+    public Printer menu(Menu menu) {
         this.inputNumberMessage();
+        MenuElement[] menuElements = menu.getElements();
 
-        IntStream.range(1, menu.length + 1).forEach(i -> {
-            System.out.printf("%d. %s\n", i, menu[i - 1].getDescription());
+        IntStream.range(1, menuElements.length + 1).forEach(i -> {
+            System.out.printf("%d. %s\n", i, menuElements[i - 1].getDescription());
         });
 
         return this;
@@ -50,25 +59,12 @@ public class Printer {
         Arrays.stream(messages).forEach(System.out::println);
         return this;
     }
-    public Printer players(PlayerDtos newPlayers) {
-        List<PlayerDto> players = newPlayers.getPlayers();
+    public void playerList(PlayersDto playersDto) {
+        List<PlayerDto> players = playersDto.getPlayers();
 
-        this.inputNumberMessage();
-        IntStream.range(0, players.size()).forEach(i -> {
-            this.newPlayer(i + 1, players.get(i));
-        });
-
-        System.out.printf("%d. 뒤로가기\n", players.size() + 1);
-        return this;
+        PlayerMenu playerMenu = new PlayerMenu(players);
+        this.menu(playerMenu);
     }
-
-    private void newPlayer(int idx, PlayerDto player) {
-        System.out.printf("%d. %s%n", idx, player.getType());
-        System.out.printf("\t - 코딩 실력(%d)\n", player.getCodingSkill());
-        System.out.printf("\t - 정신력(%d)\n", player.getMentalStrength());
-        System.out.printf("\t - 체력(%d)\n", player.getHealth());
-    }
-
     public void gameMap(GameInfoDto gameInfoDto) {
         System.out.println("[맵]");
         List<StringBuilder> blankGameMap = this.getBlankGameMap(gameInfoDto);
@@ -83,12 +79,12 @@ public class Printer {
         List<Coordinate> enemyCoordinates = gameInfoDto.getEnemyCoordinates();
 
         blankGameMap.get(playerCoordinate.getY() + 1)
-                      .setCharAt(playerCoordinate.getX() + 1, GameMap.PLAYER_SYMBOL);
+                      .setCharAt(playerCoordinate.getX() + 1, PLAYER_SYMBOL);
         blankGameMap.get(enemyBossCoordinate.getY() + 1)
-                      .setCharAt(enemyBossCoordinate.getX() + 1, GameMap.MAIN_SUBJECT_SYMBOL);
+                      .setCharAt(enemyBossCoordinate.getX() + 1, MAIN_SUBJECT_SYMBOL);
         enemyCoordinates.forEach(coordinate -> {
             blankGameMap.get(coordinate.getY() + 1)
-                          .setCharAt(coordinate.getX() + 1, GameMap.SUB_SUBJECT_SYMBOL);
+                          .setCharAt(coordinate.getX() + 1, SUB_SUBJECT_SYMBOL);
         });
         return blankGameMap.stream()
                 .map(StringBuilder::toString)
@@ -98,13 +94,14 @@ public class Printer {
     private List<StringBuilder> getBlankGameMap(GameInfoDto gameInfoDto) {
         List<StringBuilder> stringBuilders = new ArrayList<>();
         int mapSize = gameInfoDto.getMapSize();
+        int totalMapSize = mapSize + 2;
 
-        for (int y = 0; y < mapSize + 2; ++y) {
+        for (int y = 0; y < totalMapSize; ++y) {
             StringBuilder stringBuilder = new StringBuilder();
-            for (int x = 0; x < mapSize + 2; ++x) {
+            for (int x = 0; x < totalMapSize; ++x) {
                 if (y == 0 || y == mapSize + 1) {
                     stringBuilder.append('-');
-                } else if (x == 0 || x == mapSize + 1) {
+                } else if (x == 0 || (x == mapSize + 1)) {
                     stringBuilder.append('|');
                 } else {
                     stringBuilder.append('.');
@@ -112,6 +109,7 @@ public class Printer {
             }
             stringBuilders.add(stringBuilder);
         }
+        stringBuilders.get(1).delete(totalMapSize - 1, totalMapSize);
         return stringBuilders;
     }
 
@@ -139,17 +137,65 @@ public class Printer {
         System.out.printf("이름: %s\n", name);
         System.out.printf("타입(%s)\t레벨(%s/%s)\t코딩스킬(%s/%s)\t정신력(%s/%s)\t체력(%s/%s)\t경험치(%s/%s)\n",
                 type, level, Level.MAX_LEVEL, codingSkill, Stat.MAX_STAT_LIMIT, mentalStrength, Stat.MAX_STAT_LIMIT,
-                health, currentHealth, experience, neededExperience);
+                currentHealth, health, experience, neededExperience);
+
+        System.out.println("[아티팩트]");
+        player.getArtifacts().values()
+                .forEach(artifact -> {
+                    String rank = artifact.getRank();
+                    int artifactCodingSkill = artifact.getCodingSkill();
+                    int artifactMentalStrength = artifact.getMentalStrength();
+                    int artifactHealth = artifact.getHealth();
+
+                    System.out.printf("등급(%s)\t코딩스킬(%d)\t정신력(%d)\t체력(%d)\n",
+                            rank, artifactCodingSkill, artifactMentalStrength, artifactHealth);
+                });
     }
 
-    public Printer inputPlayerNameMessage() {
+    public void inputPlayerNameMessage() {
         System.out.printf("플레이어 이름을 입력하세요. (%d ~ %d자)\n",
-                SetNewGamePlayerRequest.MIN_PLAYER_NAME_LENGTH,
-                SetNewGamePlayerRequest.MAX_PLAYER_NAME_LENGTH);
-        return this;
+                SetNewPlayerNameRequest.MIN_PLAYER_NAME_LENGTH,
+                SetNewPlayerNameRequest.MAX_PLAYER_NAME_LENGTH);
     }
 
     private void inputNumberMessage() {
         System.out.println("번호를 입력하세요.");
+    }
+
+    public void artifact(Artifact artifact) {
+
+        String rank = artifact.getRank();
+        int codingSkill = artifact.getCodingSkill();
+        int mentalStrength = artifact.getMentalStrength();
+        int health = artifact.getHealth();
+
+        System.out.println("아티팩트를 획득하였습니다.");
+        System.out.println("[아티팩트]");
+        System.out.printf("등급: %s\n", rank);
+        System.out.printf("코딩스킬: %s\n", codingSkill);
+        System.out.printf("정신력: %s\n", mentalStrength);
+        System.out.printf("체력: %s\n", health);
+
+        this.menu(new ArtifactMenu());
+    }
+
+    public void saveGame() {
+        System.out.println("게임을 저장하시겠습니까?");
+        this.menu(new SaveGameMenu());
+    }
+
+    public void ending(String message) {
+        System.out.println(message);
+        System.out.printf("\n%d초 후에 게임을 종료합니다.\n", ENDING_TIME / 1000);
+
+        try {
+            Thread.sleep(ENDING_TIME);
+        } catch (InterruptedException e) {
+            throw new GameException("게임을 종료하는데 실패하였습니다.");
+        }
+    }
+
+    public void resetDataMessage() {
+        System.out.println("정말 데이터를 초기화 하시겠습니까?");
     }
 }

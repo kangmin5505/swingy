@@ -2,13 +2,15 @@ package me.kangmin.swingy.dto;
 
 public class PlayerDto {
 
+    private final String name;
     private final String type;
     private final int codingSkill;
     private final int mentalStrength;
     private final int health;
     private final int level;
 
-    private PlayerDto(String type, int codingSkill, int mentalStrength, int health, int level) {
+    private PlayerDto(String name, String type, int codingSkill, int mentalStrength, int health, int level) {
+        this.name = name;
         this.type = type;
         this.codingSkill = codingSkill;
         this.mentalStrength = mentalStrength;
@@ -22,6 +24,7 @@ public class PlayerDto {
     }
 
     public static class Builder {
+        private String name;
         private String type;
         private int codingSkill;
         private int mentalStrength;
@@ -29,6 +32,11 @@ public class PlayerDto {
         private int level;
 
         Builder() {}
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
 
         public Builder type(String type) {
             this.type = type;
@@ -62,7 +70,7 @@ public class PlayerDto {
             assert this.health > 0;
             assert this.level >= 0;
 
-            return new PlayerDto(this.type, this.codingSkill, this.mentalStrength, this.health, this.level);
+            return new PlayerDto(this.name, this.type, this.codingSkill, this.mentalStrength, this.health, this.level);
         }
 
     }

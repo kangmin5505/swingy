@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class Stage implements Serializable {
     private int stage;
+    public final static int FINAL_STAGE = 7;
     private static final Map<Integer, String> STAGE_BOSS_MAP = Map.of(
             0, "Piscine",
             1, "Libft",
@@ -40,5 +41,9 @@ public class Stage implements Serializable {
     public int getTotalSubSubjectCnt() {
         return (this.stage - 1) * 5 + 10 - (this.stage % 2);
 
+    }
+
+    public boolean isFinalStage() {
+        return this.stage == FINAL_STAGE;
     }
 }

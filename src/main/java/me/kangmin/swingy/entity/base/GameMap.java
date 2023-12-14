@@ -1,29 +1,15 @@
 package me.kangmin.swingy.entity.base;
 
 import me.kangmin.swingy.entity.Player;
-import me.kangmin.swingy.enums.Move;
-import me.kangmin.swingy.enums.StudyType;
 import me.kangmin.swingy.enums.SubjectType;
-import me.kangmin.swingy.exception.ExceptionMessage;
-import me.kangmin.swingy.exception.GameException;
+import me.kangmin.swingy.view.menu.element.MoveElement;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class GameMap implements Serializable {
-    static final String DIRECTORY_NAME = "maps";
-    static final String FILE_NAME = "map_level";
-    static final String EXTENSION = "txt";
-
-    public static final char PLAYER_SYMBOL = '@';
-    public static final char MAIN_SUBJECT_SYMBOL = '$';
-    public static final char SUB_SUBJECT_SYMBOL = '#';
     private int mapSize;
     private final Player player;
     private Coordinate playerCoordinate;
@@ -35,11 +21,11 @@ public class GameMap implements Serializable {
         this.setEntityCoordinates();
     }
 
-    public boolean move(Move move) {
-        if (canMove(move)) {
-            this.playerCoordinate.moveBy(move.getDeltaX(), move.getDeltaY());
+    public boolean movePlayer(MoveElement moveElement) {
+        if (this.isCanMovePlayer(moveElement)) {
+            this.playerCoordinate.moveBy(moveElement.getDeltaX(), moveElement.getDeltaY());
         }
-        return this.isCollisionToEntities();
+        return this.isCollisionToSubject();
     }
 
     public void removeSubject() {
@@ -55,51 +41,35 @@ public class GameMap implements Serializable {
 
     private void setEntityCoordinates() {
         this.subSubjectCoordinates = new ArrayList<>();
-        String path = this.getFileMapPath();
-        URL resource = this.getClass().getClassLoader().getResource(path);
-        if (resource == null) {
-            throw new GameException(ExceptionMessage.CREATE_MAP);
-        }
 
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(resource.toURI()));
-            for (int y = 0; y < lines.size(); ++y) {
-                String line = lines.get(y);
-                for (int x = 0; x < line.length(); ++x) {
-                    this.setEntityCoordinate(line, x, y);
-                }
-            }
-        } catch (IOException | URISyntaxException | NullPointerException e) {
-            throw new GameException(ExceptionMessage.CREATE_MAP);
+        this.playerCoordinate = new Coordinate(this.mapSize / 2, this.mapSize / 2);
+        this.mainSubjectCoordinate = new Coordinate(this.mapSize - 1, 0);
+
+        for (int y = 0; y < this.mapSize; y++) {
+            this.subSubjectCoordinates.add(this.getSubSubjectCoordinate(y));
         }
     }
 
-    private void setEntityCoordinate(String line, int x, int y) {
-        Coordinate coordinate = new Coordinate(x, y);
+    private Coordinate getSubSubjectCoordinate(int y) {
+        Random random = new Random();
+        int x;
+        do {
+            x = random.nextInt(this.mapSize);
+        } while ((x == this.mainSubjectCoordinate.getX() && y == this.mainSubjectCoordinate.getY()) ||
+                (x == this.playerCoordinate.getX() && y == this.playerCoordinate.getY()));
 
-        switch (line.charAt(x)) {
-            case PLAYER_SYMBOL:
-                this.playerCoordinate = coordinate;
-                break;
-            case SUB_SUBJECT_SYMBOL:
-                this.subSubjectCoordinates.add(coordinate);
-                break;
-            case MAIN_SUBJECT_SYMBOL:
-                this.mainSubjectCoordinate = coordinate;
-                break;
-            default:
-                break;
-        }
-    }
-    private boolean isCollisionToEntities() {
-        return this.isCollisionWithEnemy() || this.isCollisionWithEnemyBoss();
+        return new Coordinate(x, y);
     }
 
-    private boolean isCollisionWithEnemyBoss() {
+    private boolean isCollisionToSubject() {
+        return this.isCollisionWithSubSubject() || this.isCollisionWithMainSubject();
+    }
+
+    private boolean isCollisionWithMainSubject() {
         return this.mainSubjectCoordinate.equals(this.playerCoordinate);
     }
 
-    private boolean isCollisionWithEnemy() {
+    private boolean isCollisionWithSubSubject() {
         return this.subSubjectCoordinates.stream()
                                          .anyMatch(coordinate -> coordinate.equals(this.playerCoordinate));
     }
@@ -110,14 +80,9 @@ public class GameMap implements Serializable {
         return (playerLevel - 1) * 5 + 10 - (playerLevel % 2);
     }
 
-    private String getFileMapPath() {
-        String originalFileName = String.format("%s%d.%s", FILE_NAME, this.player.getLevel(), EXTENSION);
-        return String.format("%s/%s", DIRECTORY_NAME, originalFileName);
-    }
-
-    private boolean canMove(Move move) {
-        int movedPlayerX = this.playerCoordinate.getX() + move.getDeltaX();
-        int movedPlayerY = this.playerCoordinate.getY() + move.getDeltaY();
+    private boolean isCanMovePlayer(MoveElement moveElement) {
+        int movedPlayerX = this.playerCoordinate.getX() + moveElement.getDeltaX();
+        int movedPlayerY = this.playerCoordinate.getY() + moveElement.getDeltaY();
 
         return movedPlayerX >= 0 && movedPlayerX < this.mapSize &&
                 movedPlayerY >= 0 && movedPlayerY < this.mapSize;

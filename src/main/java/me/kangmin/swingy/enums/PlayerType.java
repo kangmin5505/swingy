@@ -7,7 +7,7 @@ public enum PlayerType {
     NATURAL_SCIENCES("자연", 9, 9, 9),               // 자연
     ENGINEERING("공학", 15, 6, 6),                    // 공학
     MEDICINE("의약", 6, 10, 11),                       // 의약
-    ARTS_AND_PHYSICAL_EDUCATION("예체능", 2, 8, 17)     // 예체능
+    ARTS_AND_PHYSICAL_EDUCATION("예체능", 2, 8, 17),     // 예체능
     ;
 
     final String type;
@@ -37,4 +37,5 @@ public enum PlayerType {
     public int getHealth() {
         return this.health;
     }
+
 }
