@@ -50,7 +50,8 @@ public class GameService {
         }
 
         SubjectType subjectType = this.game.getSubjectType();
-        return new SubjectResultDto(isSuccess, subjectType);
+        int stage = this.game.getStage().getStage();
+        return new SubjectResultDto(isSuccess, subjectType, stage);
     }
 
     public Artifact getArtifact() {
@@ -67,13 +68,6 @@ public class GameService {
         this.game.nextStage();
         if (value == SaveGameElement.SAVE) {
             this.gameRepository.saveGame(this.game);
-        }
-
-        int stage = this.game.getStage().getStage();
-
-        boolean isFinalStage = (stage > Stage.FINAL_STAGE);
-        if (isFinalStage) {
-            return Page.END;
         }
 
         return Page.GAME_PLAY;
@@ -134,7 +128,7 @@ public class GameService {
         if (value == ResetDataElement.YES) {
             this.gameRepository.resetData();
         }
-
+        this.gameRepository.releaseData();
         return Page.SETTING;
     }
 }

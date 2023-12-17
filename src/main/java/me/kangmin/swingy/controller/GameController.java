@@ -39,11 +39,6 @@ public class GameController {
             RequestHandlerCode.RESET_DATA, this::handleResetData
     );
 
-    private Page handleResetData(Integer input) {
-        int idx = input - 1;
-        return this.gameService.resetData(idx);
-    }
-
     private final Map<RequestHandlerCode, StringArgumentRequestHandler<?>> stringArgumentRequestHandler = Map.of(
             RequestHandlerCode.CREATE_PLAYER_NAME, this::handleSetNewPlayerName
     );
@@ -106,6 +101,11 @@ public class GameController {
                            .message(e.getMessage())
                            .build();
         }
+    }
+
+    private Page handleResetData(Integer input) {
+        int idx = input - 1;
+        return this.gameService.resetData(idx);
     }
 
     private Page handleLoadGame(Integer input) {

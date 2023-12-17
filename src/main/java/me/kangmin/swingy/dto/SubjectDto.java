@@ -8,11 +8,13 @@ import java.util.Optional;
 public class SubjectDto {
     private final SubjectType subjectType;
     private final boolean isSuccess;
+    private final int stage;
     private final Artifact artifact;
 
     public SubjectDto(SubjectResultDto subjectResultDto, Artifact artifact) {
         this.subjectType = subjectResultDto.getSubjectType();
         this.isSuccess = subjectResultDto.isSuccess();
+        this.stage = subjectResultDto.getStage();
         this.artifact = artifact;
     }
     public SubjectType getSubjectType() {
@@ -21,6 +23,10 @@ public class SubjectDto {
 
     public boolean isSuccess() {
         return isSuccess;
+    }
+
+    public int getStage() {
+        return stage;
     }
 
     public Optional<Artifact> getArtifact() {

@@ -61,7 +61,7 @@ public class Response<T> {
         INVALID_INPUT("잘못된 입력입니다."),
         CREATE_MAP("게임 맵 생성에 실패했습니다."),
         FAIL_TO_LOAD_GAME("게임을 불러오는데 실패했습니다."),
-        ;
+        FAIL_TO_CREATE_SAVE_GAME_DIR("게임 저장 폴더를 생성하는데 실패했습니다."), FAIL_TO_RESET_DATA("데이터 초기화에 실패했습니다.");
 
         private final String message;
 

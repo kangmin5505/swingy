@@ -12,12 +12,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class FileGameRepository implements GameRepository {
     private static final String SAVE_GAME_PATH = "src/main/resources/save_game";
     private static final String SAVE_GAME_EXTENSION = ".ser";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private final Path dirPath = Paths.get(SAVE_GAME_PATH);
     private List<Game> savedGames = null;
+
+
+    public FileGameRepository() {
+        try {
+            Files.createDirectories(this.dirPath);
+        } catch (IOException e) {
+            throw new GameException(Response.Message.FAIL_TO_CREATE_SAVE_GAME_DIR);
+        }
+    }
 
     @Override
     public List<Game> findAllSavedGame() {
@@ -46,18 +57,15 @@ public class FileGameRepository implements GameRepository {
 
     @Override
     public void saveGame(Game game) {
-        Path path = Paths.get(SAVE_GAME_PATH);
         String filename = this.getFileFullPath();
 
         try (FileOutputStream fos = new FileOutputStream(filename);
              BufferedOutputStream bos = new BufferedOutputStream(fos);
              ObjectOutputStream out = new ObjectOutputStream(bos)) {
-            Files.createDirectories(path);
             out.writeObject(game);
         } catch (IOException e) {
             throw new GameException(Response.Message.FAIL_TO_LOAD_GAME);
         }
-        this.savedGames = null;
     }
 
     @Override
@@ -68,10 +76,28 @@ public class FileGameRepository implements GameRepository {
 
     @Override
     public void resetData() {
-        // TODO: reset Data
+        if (Files.isDirectory(this.dirPath)) {
+            try (Stream<Path> paths = Files.walk(this.dirPath)) {
+                paths.filter(Files::isRegularFile)
+                        .filter(path -> path.toString().endsWith(SAVE_GAME_EXTENSION))
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException e) {
+                                throw new GameException(Response.Message.FAIL_TO_RESET_DATA);
+                            }
+                        });
+            } catch (IOException e) {
+                throw new GameException(Response.Message.FAIL_TO_RESET_DATA);
+            }
+        }
+
     }
     
-    // TODO : clear data
+    @Override
+    public void releaseData() {
+        this.savedGames = null;
+    }
 
     private String getFileFullPath() {
         return String.format("%s/swingy_%s%s", SAVE_GAME_PATH, getFormattedDateTime(), SAVE_GAME_EXTENSION);

@@ -20,4 +20,6 @@ public interface GameRepository {
     int getSavedGameCount();
 
     void resetData();
+
+    void releaseData();
 }

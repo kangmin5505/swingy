@@ -9,15 +9,15 @@ import me.kangmin.swingy.core.GameManager;
 import me.kangmin.swingy.dto.GameInfoDto;
 import me.kangmin.swingy.dto.PlayersDto;
 import me.kangmin.swingy.dto.SubjectDto;
+import me.kangmin.swingy.entity.base.Stage;
 import me.kangmin.swingy.enums.Page;
 import me.kangmin.swingy.enums.SubjectType;
-import me.kangmin.swingy.view.helper.Printer;
-import me.kangmin.swingy.view.menu.MoveMenu;
-import me.kangmin.swingy.view.menu.SettingMenu;
-import me.kangmin.swingy.view.menu.StudyMethodMenu;
-import me.kangmin.swingy.view.menu.WelcomeMenu;
+import me.kangmin.swingy.exception.GameException;
+import me.kangmin.swingy.view.helper.TextProvider;
+import me.kangmin.swingy.view.menu.*;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -38,7 +38,6 @@ public class ConsoleGameView implements GameView {
     );
 
     private final Scanner scanner = new Scanner(System.in);
-    private final Printer printer = new Printer();
     private final GameManager gameManager;
     private final GameController gameController;
 
@@ -52,40 +51,62 @@ public class ConsoleGameView implements GameView {
         Page page = Page.WELCOME;
 
         while (page != Page.NONE) {
-            this.printer.clearConsole();
+            this.clearConsole();
             page = this.PAGE_TO_PROC_MAP.get(page).get();
         }
     }
     // ========== private methods ==========
     private Page procExit() {
-        this.printer.exit();
+        String exitText = TextProvider.exit();
+        System.out.println(exitText);
+
         System.exit(0);
 
         return Page.NONE;
     }
 
     private Page procEndPage() {
-        this.printer.ending(getEnding());
+        String endingText = TextProvider.ending();
+        System.out.println(endingText);
+
+        try {
+            Thread.sleep(TextProvider.ENDING_TIME);
+        } catch (InterruptedException e) {
+            throw new GameException("게임을 종료하는데 실패하였습니다.");
+        }
+
         return Page.WELCOME;
     }
 
     private Page procGamePlayPage() {
         GameInfoDto gameInfoDto = this.requestFromCode(RequestHandlerCode.GAME_INFO);
 
-        printer.stage(gameInfoDto);
+        String stageText = TextProvider.stage(gameInfoDto);
+        System.out.println(stageText);
 
-        printer.gameMap(gameInfoDto);
-        printer.player(gameInfoDto.getPlayer());
+        String gameMapText = TextProvider.gameMap(gameInfoDto);
+        System.out.println(gameMapText);
 
-        this.printer.menu(new MoveMenu());
+        String playerText = TextProvider.player(gameInfoDto.getPlayer());
+        System.out.println(playerText);
+
+        this.printMenu(new MoveMenu());
 
         Boolean isAllocatedSubject = this.requestFromInput(MovePlayerRequest.class);
 
         return Boolean.TRUE.equals(isAllocatedSubject) ? this.procAllocatedSubject() : Page.GAME_PLAY;
     }
 
+    private void printMenu(Menu menu) {
+        String inputNumberText = TextProvider.inputNumber();
+        System.out.println(inputNumberText);
+
+        TextProvider.menu(menu)
+                .forEach(System.out::println);
+    }
+
     private Page procAllocatedSubject() {
-        this.printer.menu(new StudyMethodMenu());
+        this.printMenu(new StudyMethodMenu());
 
         SubjectDto subjectDto = this.requestFromInput(StudySubjectRequest.class);
 
@@ -95,23 +116,31 @@ public class ConsoleGameView implements GameView {
 
         if (subjectDto.getSubjectType() == SubjectType.MAIN) {
             subjectDto.getArtifact().ifPresent(artifact -> {
-                this.printer.artifact(artifact);
+                String artifactText = TextProvider.artifact(artifact);
+                System.out.println(artifactText);
+
                 this.requestFromInput(ArtifactRequest.class);
             });
-            return Page.NEXT_STAGE;
+            int stage = subjectDto.getStage();
+
+            return stage == Stage.FINAL_STAGE ? Page.END : Page.NEXT_STAGE;
         }
 
         return Page.GAME_PLAY;
     }
 
     private Page procNextStage() {
-        this.printer.saveGame();
+        String saveGameText = TextProvider.saveGame();
+        System.out.println(saveGameText);
+
         return this.requestFromInput(SaveGameRequest.class);
     }
 
     private Page procLoadGamePage() {
         PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.SAVED_GAME_LIST);
-        this.printer.playerList(playersDto);
+
+        TextProvider.playerList(playersDto)
+                            .forEach(System.out::println);
 
         return this.requestFromInput(LoadGameRequest.class);
     }
@@ -119,31 +148,44 @@ public class ConsoleGameView implements GameView {
     private Page procCreateNewPlayer() {
         PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.NEW_PLAYER_LIST);
 
-        this.printer.playerList(playersDto);
+        TextProvider.playerList(playersDto)
+                    .forEach(System.out::println);
+
 
         Page page = this.requestFromInput(ChooseNewPlayerRequest.class);
         if (page == Page.WELCOME) {
             return Page.WELCOME;
         }
 
-        this.printer.inputPlayerNameMessage();
+        String inputPlayerNameText = TextProvider.inputPlayerName();
+        System.out.println(inputPlayerNameText);
+
         return this.requestFromInput(SetNewPlayerNameRequest.class);
     }
 
     private Page procWelcomePage() {
-        this.printer.intro(getBanner(), getIntro())
-                    .menu(new WelcomeMenu());
+        String introText = TextProvider.intro();
+        System.out.println(introText);
+
+        this.printMenu(new WelcomeMenu());
 
         return this.requestFromInput(WelcomeRequest.class);
     }
+    private void clearConsole() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
 
     private Page procSettingPage() {
-        this.printer.menu(new SettingMenu());
+        this.printMenu(new SettingMenu());
+
         return this.requestFromInput(SettingRequest.class);
     }
 
     private Page procResetDataPage() {
-        this.printer.resetDataMessage();
+        String resetDataText = TextProvider.resetData();
+        System.out.println(resetDataText);
+
         return this.requestFromInput(ResetDataRequest.class);
     }
 
@@ -155,12 +197,15 @@ public class ConsoleGameView implements GameView {
     private <T extends Request, S> S requestFromInput(Class<T> clazz) {
         Response<S> response = null;
         boolean isFailure = false;
+        String mismatchText = TextProvider.mismatch();
+        String inputText = TextProvider.input();
 
         do {
             if (isFailure) {
-                this.printer.mismatchMessage();
+                System.out.println(mismatchText);
             }
-            this.printer.inputMessage();
+            System.out.println(inputText);
+
             String input = this.getInput();
             response = this.request(input, clazz);
             isFailure = true;

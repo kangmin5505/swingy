@@ -22,15 +22,9 @@ public class Game implements Serializable {
     private final GameMap gameMap;
     private Artifact artifact;
 
-    public int nextStage() {
-        if (this.stage.isFinalStage()) {
-            return -1;
-        }
-
+    public void nextStage() {
         this.stage.nextStage();
         this.gameMap.nextStage();
-
-        return this.stage.getStage();
     }
 
     // ========== constructor ==========
@@ -43,10 +37,6 @@ public class Game implements Serializable {
     // ========== getter ==========
     public Stage getStage() {
         return this.stage;
-    }
-
-    public int getMapSize() {
-        return this.gameMap.getMapSize();
     }
 
     public Player getPlayer() {

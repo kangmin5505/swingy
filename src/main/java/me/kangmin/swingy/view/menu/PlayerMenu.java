@@ -14,7 +14,7 @@ public class PlayerMenu implements Menu {
 
         for (int i = 0; i < players.size(); i++) {
             PlayerDto player = players.get(i);
-            String description = String.format("%s\n\t - 코딩 실력(%d)\n\t - 정신력(%d)\n\t - 체력(%d)\n\t - 레밸(%d)\n",
+            String description = String.format("%s\n\t - 코딩 실력(%d)\n\t - 정신력(%d)\n\t - 체력(%d)\n\t - 레벨(%d)\n",
                     player.getType(),
                     player.getCodingSkill(),
                     player.getMentalStrength(),
