@@ -8,14 +8,19 @@ public class PlayerDto {
     private final int mentalStrength;
     private final int health;
     private final int level;
+    private final int experience;
+    private final int neededExperience;
 
-    private PlayerDto(String name, String type, int codingSkill, int mentalStrength, int health, int level) {
+    private PlayerDto(String name, String type, int codingSkill, int mentalStrength, int health, int level,
+                      int experience, int neededExperience) {
         this.name = name;
         this.type = type;
         this.codingSkill = codingSkill;
         this.mentalStrength = mentalStrength;
         this.health = health;
         this.level = level;
+        this.experience = experience;
+        this.neededExperience = neededExperience;
     }
 
     // ========== builder ==========
@@ -30,6 +35,8 @@ public class PlayerDto {
         private int mentalStrength;
         private int health;
         private int level;
+        private int neededExperience;
+        private int experience;
 
         Builder() {}
 
@@ -58,6 +65,16 @@ public class PlayerDto {
             return this;
         }
 
+        public Builder experience(int experience) {
+            this.experience = experience;
+            return this;
+        }
+
+        public Builder totalNeededExperience(int neededExperience) {
+            this.neededExperience = neededExperience;
+            return this;
+        }
+
         public Builder level(int level) {
             this.level = level;
             return this;
@@ -70,7 +87,8 @@ public class PlayerDto {
             assert this.health > 0;
             assert this.level >= 0;
 
-            return new PlayerDto(this.name, this.type, this.codingSkill, this.mentalStrength, this.health, this.level);
+            return new PlayerDto(this.name, this.type, this.codingSkill, this.mentalStrength, this.health, this.level,
+                    this.experience, this.neededExperience);
         }
 
     }
@@ -94,5 +112,17 @@ public class PlayerDto {
 
     public int getLevel() {
         return level;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public int getExperience() {
+        return this.experience;
+    }
+
+    public int getNeededExperience() {
+        return this.neededExperience;
     }
 }

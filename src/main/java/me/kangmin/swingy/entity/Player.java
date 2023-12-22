@@ -78,4 +78,5 @@ public class Player implements Serializable {
     public Map<ArtifactType, Artifact> getArtifacts() {
         return this.artifacts;
     }
+
 }

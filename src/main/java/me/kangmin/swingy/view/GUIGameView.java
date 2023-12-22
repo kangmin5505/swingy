@@ -99,9 +99,9 @@ public class GUIGameView extends JFrame implements GameView {
 
         List<PlayerDto> players = playersDto.getPlayers();
 
-        List<String> playerTypes = this.createPlayerTypes(players);
+        List<String> playerTypesMenu = this.createPlayerTypes(players);
         Runnable[] runnablesForPlayerTypeMenu = this.createRunnablesForPlayerTypeMenu(players, ChooseNewPlayerRequest.class);
-        this.setMenuButtons(playerTypes, runnablesForPlayerTypeMenu);
+        this.setMenuButtons(playerTypesMenu, runnablesForPlayerTypeMenu);
 
         this.repaintAll();
     }
@@ -370,9 +370,9 @@ public class GUIGameView extends JFrame implements GameView {
 
         List<PlayerDto> players = playersDto.getPlayers();
 
-        List<String> playerTypes = this.createPlayerTypes(players);
+        List<String> playerTypesMenu = this.createPlayerTypes(players);
         Runnable[] runnablesForPlayerTypeMenu = this.createRunnablesForPlayerTypeMenu(players, LoadGameRequest.class);
-        this.setMenuButtons(playerTypes, runnablesForPlayerTypeMenu);
+        this.setMenuButtons(playerTypesMenu, runnablesForPlayerTypeMenu);
 
         this.repaintAll();
     }

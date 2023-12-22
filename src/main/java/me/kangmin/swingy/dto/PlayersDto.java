@@ -20,6 +20,9 @@ public class PlayersDto {
                 games.stream()
                      .map(game ->
                              PlayerDto.builder()
+                                      .name(game.getPlayer().getName())
+                                      .experience(game.getPlayer().getExperience())
+                                      .totalNeededExperience(game.getPlayer().getTotalNeededExperience())
                                       .type(game.getPlayer().getType())
                                       .codingSkill(game.getPlayer().getStat().getCodingSkill())
                                       .mentalStrength(game.getPlayer().getStat().getMentalStrength())
