@@ -2,15 +2,11 @@ package me.kangmin.swingy.entity;
 
 import me.kangmin.swingy.entity.base.GameMap;
 import me.kangmin.swingy.entity.base.Stage;
-import me.kangmin.swingy.entity.base.artifacts.ArtifactRank;
-import me.kangmin.swingy.entity.base.artifacts.Headset;
-import me.kangmin.swingy.entity.base.artifacts.Hoodie;
-import me.kangmin.swingy.entity.base.artifacts.Keyboard;
 import me.kangmin.swingy.enums.PlayerType;
 import me.kangmin.swingy.enums.SubjectType;
+import me.kangmin.swingy.view.menu.element.MoveElement;
 
 import java.io.Serializable;
-import java.util.Random;
 
 
 public class Game implements Serializable {
@@ -20,7 +16,6 @@ public class Game implements Serializable {
     private final Player player;
     private final Stage stage;
     private final GameMap gameMap;
-    private Artifact artifact;
 
     public void nextStage() {
         this.stage.nextStage();
@@ -31,7 +26,7 @@ public class Game implements Serializable {
     public Game(PlayerType playerType) {
         this.player = new Player(playerType);
         this.stage = new Stage();
-        this.gameMap = new GameMap(this.player);
+        this.gameMap = new GameMap(this.player, this.stage);
     }
 
     // ========== getter ==========
@@ -49,23 +44,26 @@ public class Game implements Serializable {
 
     public boolean studySubject() {
         // TODO : 알고리즘
-//        Stat stat = this.player.getStat();
-//        int codingSkill = stat.getCodingSkill();
-//        int mentalStrength = stat.getMentalStrength();
-//        int experience = this.player.getExperience();
-//        int neededExperience = this.player.getNeededExperience();
-//        int stageLevel = this.stage.getStage();
-//
-//        int experienceRate = (int)(((double) experience / neededExperience) * 100);
-//        if (experienceRate + codingSkill < stageLevel * 25) {
-//           double v = ((double) 84L - (double) mentalStrength) / 84L;
-//            Random random = new Random();
-//            boolean b = random.nextDouble() < v;
-//            if (b) {
-//                this.player.decreaseHealth();
-//            }
-//        }
-//        return this.player.isDie();
+        int subSubjectCnt = this.gameMap.getSubSubjectCoordinates().size();
+        int stageLevel = this.stage.getStageLevel();
+
+        if (this.gameMap.getSubjectType() == SubjectType.MAIN && stageLevel > 0) {
+            double winRatio = (double) (stageLevel - subSubjectCnt) / stageLevel;
+            int codingSkill = this.player.getStat().getCodingSkill();
+            int mentalStrength = this.player.getStat().getMentalStrength();
+            winRatio += codingSkill * 0.0015 + mentalStrength * 0.001;
+
+            if (Math.random() > winRatio) {
+                return false;
+            }
+        } else {
+            int damage = (stageLevel - player.getLevel()) * 2 + 2;
+            this.player.decreaseHealth(damage);
+
+            if (this.player.isDie()) {
+                return false;
+            }
+        }
         this.finishSubject();
         return true;
     }
@@ -90,48 +88,26 @@ public class Game implements Serializable {
     }
 
     public Artifact getArtifact() {
-        int stage = this.stage.getStage();
-        if (Math.random() >= 0.3 + (stage * 0.1)) {
-            return null;
-        }
+        int stage = this.stage.getStageLevel();
 
-        ArtifactRank rank = this.getArtifactRank(stage);
-        artifact = this.createArtifact(rank);
-
-        return artifact;
+        return Artifact.getArtifact(stage);
     }
 
-    private Artifact createArtifact(ArtifactRank rank) {
-        int randomNumber = new Random().nextInt(3);
-        switch (randomNumber) {
-            case 0:
-                return new Headset(rank);
-            case 1:
-                return new Keyboard(rank);
-            default:
-                return new Hoodie(rank);
-        }
-    }
-
-    private ArtifactRank getArtifactRank(int stage) {
-        if (stage < 3) {
-            return ArtifactRank.COMMON;
-        } else if (stage < 6) {
-            return ArtifactRank.RARE;
-        } else {
-            return ArtifactRank.LEGENDARY;
-        }
-    }
 
     public void acquireArtifact() {
-        this.player.addArtifact(this.artifact);
+        Artifact artifact = Artifact.acquireArtifact();
+        this.player.addArtifact(artifact);
     }
 
     public void discardArtifact() {
-        this.artifact = null;
+        Artifact.discardArtifact();
     }
 
     public SubjectType getSubjectType() {
         return this.gameMap.getSubjectType();
+    }
+
+    public boolean movePlayer(MoveElement moveElement) {
+        return this.gameMap.movePlayer(moveElement);
     }
 }

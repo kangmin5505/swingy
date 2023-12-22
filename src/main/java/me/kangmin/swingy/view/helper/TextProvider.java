@@ -20,8 +20,8 @@ import java.util.stream.IntStream;
 public class TextProvider {
     private final static char PLAYER_SYMBOL = '@';
     private final static char MAIN_SUBJECT_SYMBOL = '$';
-    private final static char SUB_SUBJECT_SYMBOL = '#';
-    public final static int ENDING_TIME = 5000;
+    private final static char SUB_SUBJECT_SYMBOL = '*';
+    public final static int WAITING_TIME = 5000;
     private final static StringBuilder sb = new StringBuilder();
 
     public static String exit() {
@@ -60,6 +60,7 @@ public class TextProvider {
         PlayerMenu playerMenu = new PlayerMenu(players);
         return menu(playerMenu);
     }
+
     public static String gameMap(GameInfoDto gameInfoDto) {
         sb.append("[맵]\n");
         List<StringBuilder> blankGameMap = getBlankGameMap(gameInfoDto);
@@ -98,11 +99,11 @@ public class TextProvider {
             StringBuilder stringBuilder = new StringBuilder();
             for (int x = 0; x < totalMapSize; ++x) {
                 if (y == 0 || y == mapSize + 1) {
-                    stringBuilder.append('-');
+                    stringBuilder.append('#');
                 } else if (x == 0 || (x == mapSize + 1)) {
-                    stringBuilder.append('|');
+                    stringBuilder.append('#');
                 } else {
-                    stringBuilder.append('.');
+                    stringBuilder.append('_');
                 }
             }
             stringBuilders.add(stringBuilder);
@@ -189,28 +190,17 @@ public class TextProvider {
         sb.append(String.format("정신력: %s\n", mentalStrength));
         sb.append(String.format("체력: %s\n", health));
 
-        sb.append(menu(new ArtifactMenu()));
-
-        return getResult();
-    }
-
-    public static String saveGame() {
-        sb.append("게임을 저장하시겠습니까?\n");
-        sb.append(menu(new SaveGameMenu()));
-
         return getResult();
     }
 
     public static String ending() {
         sb.append(getEnding());
-        sb.append(String.format("\n%d초 후에 게임을 종료합니다.\n", ENDING_TIME / 1000));
 
         return getResult();
     }
 
     public static String resetData() {
-        sb.append("데이터를 초기화하시겠습니까?\n");
-        sb.append(menu(new YesNoMenu()));
+        sb.append("데이터를 초기화하시겠습니까?");
 
         return getResult();
     }
@@ -251,5 +241,18 @@ public class TextProvider {
 
     private static void clearStringBuilder() {
         sb.delete(0, sb.length());
+    }
+
+    public static String saveGame() {
+        sb.append("저장하시겠습니까? (최대 10개가 저장되고, 이후에는 저장되지 않습니다.)");
+
+        return getResult();
+    }
+
+    public static String gameOver() {
+        sb.append("학습에 실패했습니다.\n");
+        sb.append("다시 도전하시기 바랍니다.");
+
+        return getResult();
     }
 }

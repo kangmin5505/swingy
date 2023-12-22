@@ -1,18 +1,18 @@
 package me.kangmin.swingy.view.menu.element;
 
-import me.kangmin.swingy.enums.Page;
+import me.kangmin.swingy.enums.Step;
 
 public enum SettingElement implements MenuElement {
-    CHANGE_VIEW_MODE("화면 모드 변경", Page.CHANGE_VIEW_MODE),
-    RESET_DATA("데이터 초기화", Page.RESET_DATA),
-    BACK("뒤로 가기", Page.WELCOME);
+    CHANGE_VIEW_MODE("화면 모드 변경", Step.CHANGE_VIEW_MODE),
+    RESET_DATA("데이터 초기화", Step.RESET_DATA),
+    BACK("뒤로 가기", Step.WELCOME);
     ;
     private final String description;
-    private final Page page;
+    private final Step step;
 
-    SettingElement(String description, Page page) {
+    SettingElement(String description, Step step) {
         this.description = description;
-        this.page = page;
+        this.step = step;
     }
 
     @Override
@@ -22,8 +22,8 @@ public enum SettingElement implements MenuElement {
 
 
 
-    public Page getPage() {
-        return this.page;
+    public Step getPage() {
+        return this.step;
     }
 
 }

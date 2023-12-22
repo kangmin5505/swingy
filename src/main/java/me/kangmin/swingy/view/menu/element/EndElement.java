@@ -1,13 +1,12 @@
 package me.kangmin.swingy.view.menu.element;
 
-public enum SaveGameElement implements MenuElement {
-    SAVE("저장 후 진행"),
-    EXIT("저장 후 게임 종료")
-    ;
+public enum EndElement implements MenuElement{
+    MAIN("메인으로");
+
 
     private final String description;
 
-    SaveGameElement(String description) {
+    EndElement(String description) {
         this.description = description;
     }
 

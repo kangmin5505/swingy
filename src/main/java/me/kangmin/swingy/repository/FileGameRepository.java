@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class FileGameRepository implements GameRepository {
@@ -19,8 +20,6 @@ public class FileGameRepository implements GameRepository {
     private static final String SAVE_GAME_EXTENSION = ".ser";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private final Path dirPath = Paths.get(SAVE_GAME_PATH);
-    private List<Game> savedGames = null;
-
 
     public FileGameRepository() {
         try {
@@ -32,7 +31,7 @@ public class FileGameRepository implements GameRepository {
 
     @Override
     public List<Game> findAllSavedGame() {
-        this.savedGames = new ArrayList<>();
+        List<Game> savedGames = new ArrayList<>();
 
         File savedDir = new File(SAVE_GAME_PATH);
         if (savedDir.exists() && savedDir.isDirectory()) {
@@ -70,8 +69,7 @@ public class FileGameRepository implements GameRepository {
 
     @Override
     public int getSavedGameCount() {
-        assert savedGames != null;
-        return this.savedGames.size();
+        return this.findAllSavedGame().size();
     }
 
     @Override
@@ -87,16 +85,16 @@ public class FileGameRepository implements GameRepository {
                                 throw new GameException(Response.Message.FAIL_TO_RESET_DATA);
                             }
                         });
+
             } catch (IOException e) {
                 throw new GameException(Response.Message.FAIL_TO_RESET_DATA);
             }
         }
-
     }
-    
+
     @Override
-    public void releaseData() {
-        this.savedGames = null;
+    public Optional<Game> findGameByIndex(int idx) {
+        return Optional.ofNullable(this.findAllSavedGame().get(idx));
     }
 
     private String getFileFullPath() {

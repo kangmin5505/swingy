@@ -1,22 +1,24 @@
 package me.kangmin.swingy.entity.base;
 
-import me.kangmin.swingy.entity.Player;
 import me.kangmin.swingy.enums.SubjectType;
 
 import java.io.Serializable;
 
 public class Level implements Serializable {
+    private static final long serialVersionUID = 2739622121891754846L;
     private static final int INITIAL_LEVEL = 0;
     private static final int INITIAL_EXPERIENCE = 0;
     public static final int MAX_LEVEL = 7;
-    private static final int MAIN_SUBJECT_CNT = 3;
+    private static final int MAIN_SUBJECT_CNT = 2;
     private int level;
     private int experience;
+    private final Stat stat;
 
     private void increaseExperience(int experience) {
         this.experience += experience;
         if (this.isLevelUp()) {
             this.levelUp();
+            this.stat.levelUp();
         }
     }
 
@@ -34,9 +36,10 @@ public class Level implements Serializable {
 
     // ========== constructor ==========
 
-    public Level() {
+    public Level(Stat stat) {
         this.level = INITIAL_LEVEL;
         this.experience = INITIAL_EXPERIENCE;
+        this.stat = stat;
     }
 
     //  ========== private ==========

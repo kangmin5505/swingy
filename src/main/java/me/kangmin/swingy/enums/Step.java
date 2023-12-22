@@ -1,6 +1,6 @@
 package me.kangmin.swingy.enums;
 
-public enum Page {
+public enum Step {
     WELCOME,
     SETTING,
     CREATE_NEW_PLAYER,
@@ -8,5 +8,10 @@ public enum Page {
     CHANGE_VIEW_MODE,
     EXIT,
     RESET_DATA,
-    Game_OVER, LOAD_GAME, NONE, NEXT_STAGE, END;
+    GAME_OVER,
+    LOAD_GAME,
+    NONE,
+    END,
+    DIE,
+    SAVE_GAME;
 }

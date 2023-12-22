@@ -8,7 +8,7 @@ import me.kangmin.swingy.controller.request.enums.RequestHandlerCode;
 public class SaveGameRequest implements Request {
     @NotNull
     @Min(1)
-    @Max(3)
+    @Max(2)
     private final Integer input;
     private final RequestHandlerCode requestHandlerCode = RequestHandlerCode.SAVE_GAME;
 

@@ -1,34 +1,34 @@
 package me.kangmin.swingy.view;
 
 import me.kangmin.swingy.controller.GameController;
-import me.kangmin.swingy.controller.request.ChooseNewPlayerRequest;
-import me.kangmin.swingy.controller.request.MovePlayerRequest;
-import me.kangmin.swingy.controller.request.Request;
-import me.kangmin.swingy.controller.request.SetNewPlayerNameRequest;
+import me.kangmin.swingy.controller.request.*;
 import me.kangmin.swingy.controller.request.enums.RequestHandlerCode;
 import me.kangmin.swingy.controller.response.Response;
 import me.kangmin.swingy.controller.response.enums.ResponseCode;
 import me.kangmin.swingy.core.GameManager;
 import me.kangmin.swingy.dto.GameInfoDto;
+import me.kangmin.swingy.dto.PlayerDto;
 import me.kangmin.swingy.dto.PlayersDto;
-import me.kangmin.swingy.entity.Game;
-import me.kangmin.swingy.enums.Page;
+import me.kangmin.swingy.dto.SubjectDto;
+import me.kangmin.swingy.entity.Artifact;
+import me.kangmin.swingy.entity.base.Stage;
+import me.kangmin.swingy.enums.Step;
+import me.kangmin.swingy.enums.SubjectType;
 import me.kangmin.swingy.exception.GameException;
 import me.kangmin.swingy.view.helper.TextProvider;
-import me.kangmin.swingy.view.menu.MoveMenu;
-import me.kangmin.swingy.view.menu.SettingMenu;
-import me.kangmin.swingy.view.menu.WelcomeMenu;
-import me.kangmin.swingy.view.menu.element.MoveElement;
+import me.kangmin.swingy.view.menu.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class GUIGameView extends JFrame implements GameView {
+    private static final int FONT_SIZE = 16;
     private final int WIDTH = 1400;
     private final double RATIO = (double) 9 / 16;
     private final int HEIGHT =  (int) (WIDTH * RATIO);
@@ -42,84 +42,111 @@ public class GUIGameView extends JFrame implements GameView {
     private final GameManager gameManager;
     private final GameController gameController;
     private final JPanel mainPanel = new JPanel();
-    private final JTextArea display = new JTextArea();
+    private final JTextArea display = new JTextArea(35, 80);
     private final JPanel subPanel = new JPanel();
 
     public GUIGameView(GameManager gameManager, GameController gameController) {
         this.gameManager = gameManager;
         this.gameController = gameController;
+
         this.init();
     }
 
     @Override
     public void run() {
-        this.procWelcomePage();
+        this.procWelcomeStep();
     }
 
     private void clearDisplay() {
         this.display.setText("");
     }
 
-    private void procWelcomePage() {
-        this.clearPanelContents();
+    private void procWelcomeStep() {
+        this.clearAllDisplay();
 
         String introText = TextProvider.intro();
         this.display.append(introText);
+
         this.setMenuButtons(TextProvider.menu(new WelcomeMenu()),
                 this::procCreateNewPlayer,
-                this::procLoadGamePage,
-                this::procSettingPage,
+                this::procLoadGameStep,
+                this::procSettingStep,
                 this::procExit
         );
+
+        this.repaintAll();
     }
 
-    private void procSettingPage() {
-        this.clearPanelContents();
+    private void procSettingStep() {
+        this.clearAllDisplay();
 
         this.setMenuButtons(TextProvider.menu(new SettingMenu()),
                 this::procChangeViewMode,
-                this::procResetDataPage,
-                this::procWelcomePage
+                this::procResetDataStep,
+                this::procWelcomeStep
         );
+
+        this.repaintAll();
     }
 
     private void procCreateNewPlayer() {
-        this.clearPanelContents();
+        this.clearAllDisplay();
 
         PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.NEW_PLAYER_LIST);
 
+        TextProvider.playerList(playersDto)
+                    .forEach(this.display::append);
+
+        List<PlayerDto> players = playersDto.getPlayers();
+
+        List<String> playerTypes = this.createPlayerTypes(players);
+        Runnable[] runnablesForPlayerTypeMenu = this.createRunnablesForPlayerTypeMenu(players, ChooseNewPlayerRequest.class);
+        this.setMenuButtons(playerTypes, runnablesForPlayerTypeMenu);
+
+        this.repaintAll();
+    }
+
+    private List<String> createPlayerTypes(List<PlayerDto> players) {
+        List<String> playerTypes = IntStream.range(0, players.size())
+                                            .mapToObj(i -> {
+                                                PlayerDto playerDto = players.get(i);
+                                                String playerType = playerDto.getType();
+
+                                                return String.format("%d. %s\n", i + 1, playerType);
+                                            })
+                                            .collect(Collectors.toList());
+        playerTypes.add(String.format("%d. %s\n", players.size() + 1, "뒤로가기"));
+
+        return playerTypes;
+    }
+
+    private <T extends Request> Runnable[] createRunnablesForPlayerTypeMenu(List<PlayerDto> players, Class<T> clazz) {
         List<Runnable> runnables = new ArrayList<>();
 
-        for (int i = 0; i < playersDto.getPlayers().size() + 1; i++) {
+        for (int i = 0; i < players.size() + 1; i++) {
             final int number = i + 1;
             runnables.add(() -> {
-                Page page = this.requestFromInput(ChooseNewPlayerRequest.class, String.valueOf(number));
+                Step step = this.requestFromInput(clazz, String.valueOf(number));
 
-                if (page == Page.WELCOME) {
-                    this.procWelcomePage();
+                if (step == Step.WELCOME) {
+                    this.procWelcomeStep();
+                } else if (clazz == LoadGameRequest.class) {
+                    this.procGamePlayStep();
                 } else {
                     this.procSetNewPlayerName();
                 }
             });
         }
-
-        TextProvider.playerList(playersDto)
-                .forEach(this.display::append);
-
-        List<String> stringList = IntStream.rangeClosed(1, playersDto.getSize() + 1)
-                                        .mapToObj(Integer::toString)
-                                        .collect(Collectors.toList());
-        this.setMenuButtons(stringList, runnables.toArray(Runnable[]::new));
+        return runnables.toArray(Runnable[]::new);
     }
 
     private void procSetNewPlayerName() {
-        this.clearPanelContents();
+        this.clearAllDisplay();
 
         String inputPlayerNameText = TextProvider.inputPlayerName();
         this.display.append(inputPlayerNameText);
 
         JTextField nameField = new JTextField(20);
-        JLabel nameLabel = new JLabel("이름 : ");
 
         JButton button = new JButton("완료");
         button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT / 2);
@@ -132,36 +159,40 @@ public class GUIGameView extends JFrame implements GameView {
             String name = nameField.getText();
             try {
                 this.requestFromInput(SetNewPlayerNameRequest.class, name);
-                this.procGamePlayPage();
+                this.procGamePlayStep();
             } catch (GameException ex) {
                 this.display.append(ex.getMessage() + "\n");
             }
         });
 
         this.subPanel.add(nameField);
-        this.subPanel.add(nameLabel);
         this.subPanel.add(button);
-    }
 
-    private void procNextStage() {
-
+        this.repaintAll();
     }
 
     private void procChangeViewMode() {
         dispose();
-        this.gameManager.procChangeViewMode();
+        this.gameManager.changeViewMode();
     }
 
-    private void procEndPage() {
+    private void procEndStep() {
+        this.clearAllDisplay();
 
+        String endingText = TextProvider.ending();
+        this.display.append(endingText);
+
+        setMenuButtons(TextProvider.menu(new EndMenu()), this::procWelcomeStep);
+
+        this.repaintAll();
     }
 
     private void procExit() {
         System.exit(0);
     }
 
-    private void procGamePlayPage() {
-        this.clearPanelContents();
+    private void procGamePlayStep() {
+        this.clearAllDisplay();
 
         GameInfoDto gameInfoDto = this.requestFromCode(RequestHandlerCode.GAME_INFO);
 
@@ -175,7 +206,15 @@ public class GUIGameView extends JFrame implements GameView {
         this.display.append(playerText);
 
         MoveMenu moveMenu = new MoveMenu();
+        Runnable[] runnablesForMoveMenu = this.createRunnablesForMoveMenu(moveMenu);
+        this.setMenuButtons(TextProvider.menu(moveMenu), runnablesForMoveMenu);
+
+        this.repaintAll();
+    }
+
+    private Runnable[] createRunnablesForMoveMenu(MoveMenu moveMenu) {
         List<Runnable> runnables = new ArrayList<>();
+
         for (int i = 0; i < moveMenu.getElements().length; ++i) {
             final int number = i + 1;
 
@@ -185,28 +224,159 @@ public class GUIGameView extends JFrame implements GameView {
                     if (Boolean.TRUE.equals(isAllocatedSubject)) {
                         this.procAllocatedSubject();
                     } else {
-                        this.procGamePlayPage();
+                        this.procGamePlayStep();
                     }
                 } catch (GameException e) {
                     this.display.append(e.getMessage() + "\n");
                 }
             });
         }
-
-        this.setMenuButtons(TextProvider.menu(moveMenu), runnables.toArray(Runnable[]::new));
+        return runnables.toArray(Runnable[]::new);
     }
 
     private void procAllocatedSubject() {
+        this.clearSubDisplay();
 
+        this.setMenuButtons(TextProvider.menu(new StudyMethodMenu()),
+                () -> this.procStudySubjectRequest(1),
+                () -> this.procStudySubjectRequest(2)
+        );
+
+        this.repaintAll();
     }
 
-    private void procResetDataPage() {
+    private void procStudySubjectRequest(int number) {
+        try {
+            SubjectDto subjectDto = this.requestFromInput(StudySubjectRequest.class, String.valueOf(number));
+            if (!subjectDto.isSuccess()) {
+                this.procGameOver();
+                return;
+            }
 
+            int stage = subjectDto.getStage();
+            SubjectType subjectType = subjectDto.getSubjectType();
+            if (subjectType == SubjectType.MAIN && stage == Stage.FINAL_STAGE) {
+                this.procEndStep();
+                return;
+            }
+
+            if (subjectDto.getSubjectType() == SubjectType.MAIN) {
+                Optional<Artifact> artifactOptional = subjectDto.getArtifact();
+                if (artifactOptional.isPresent()) {
+                    this.clearAllDisplay();
+
+                    Artifact artifact = artifactOptional.get();
+
+                    String artifactText = TextProvider.artifact(artifact);
+                    this.display.append(artifactText);
+
+                    this.setMenuButtons(TextProvider.menu(new ArtifactMenu()),
+                            () -> this.procArtifactRequest("1"),
+                            () -> this.procArtifactRequest("2")
+                    );
+
+                    this.repaintAll();
+                } else {
+                    this.procSaveGameStep();
+                }
+            } else {
+                this.procGamePlayStep();
+            }
+        } catch (GameException e) {
+            this.display.append(e.getMessage() + "\n");
+        }
     }
 
-    private void procLoadGamePage() {
+    private void procGameOver() {
+        this.clearAllDisplay();
 
+        String dieText = TextProvider.gameOver();
+        this.display.append(dieText);
+
+        setMenuButtons(TextProvider.menu(new EndMenu()), this::procWelcomeStep);
+
+        this.repaintAll();
     }
+
+    private void procArtifactRequest(String input) {
+        try {
+            this.requestFromInput(ArtifactRequest.class, input);
+
+            this.procSaveGameStep();
+        } catch (GameException e) {
+            this.display.append(e.getMessage() + "\n");
+        }
+    }
+
+    private void procSaveGameStep() {
+        this.clearAllDisplay();
+
+        this.requestFromCode(RequestHandlerCode.NEXT_STAGE);
+
+        String saveGameText = TextProvider.saveGame();
+        this.display.append(saveGameText);
+
+        this.setMenuButtons(TextProvider.menu(new SaveGameMenu()),
+                () -> this.procSaveGameRequest("1"),
+                () -> this.procSaveGameRequest("2")
+        );
+
+        this.repaintAll();
+    }
+
+    private void procSaveGameRequest(String input) {
+        try {
+            Step step = this.requestFromInput(SaveGameRequest.class, input);
+            if (step == Step.WELCOME) {
+                this.procWelcomeStep();
+                return;
+            }
+
+            this.procGamePlayStep();
+        } catch (GameException e) {
+            this.display.append(e.getMessage() + "\n");
+        }
+    }
+
+    private void procResetDataStep() {
+        this.clearAllDisplay();
+
+        String resetDataText = TextProvider.resetData();
+        this.display.append(resetDataText);
+
+        this.setMenuButtons(TextProvider.menu(new ResetDataMenu()),
+                () -> this.procResetDataRequest("1"),
+                () -> this.procResetDataRequest("2")
+        );
+
+        this.repaintAll();
+    }
+
+    private void procResetDataRequest(String input) {
+        try {
+            this.requestFromInput(ResetDataRequest.class, input);
+            this.procSettingStep();
+        } catch (GameException e) {
+            this.display.append(e.getMessage() + "\n");
+        }
+    }
+
+    private void procLoadGameStep() {
+        this.clearAllDisplay();
+
+        PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.SAVED_GAME_LIST);
+        TextProvider.playerList(playersDto)
+                    .forEach(this.display::append);
+
+        List<PlayerDto> players = playersDto.getPlayers();
+
+        List<String> playerTypes = this.createPlayerTypes(players);
+        Runnable[] runnablesForPlayerTypeMenu = this.createRunnablesForPlayerTypeMenu(players, LoadGameRequest.class);
+        this.setMenuButtons(playerTypes, runnablesForPlayerTypeMenu);
+
+        this.repaintAll();
+    }
+
     private <T extends Request, S> S requestFromInput(Class<T> clazz, String input) throws GameException {
         Response<S> response = this.request(input, clazz);
         if (response == null || response.getResponseCode() == ResponseCode.FAILURE) {
@@ -236,6 +406,9 @@ public class GUIGameView extends JFrame implements GameView {
 
     private <S> S requestFromCode(RequestHandlerCode code) {
         Response<S> response = this.gameController.request(code);
+        if (response.getResponseCode() == ResponseCode.FAILURE) {
+            throw new GameException(response.getMessage());
+        }
         return response.getData();
     }
 
@@ -247,24 +420,26 @@ public class GUIGameView extends JFrame implements GameView {
         button.setForeground(Color.BLACK);
         button.setOpaque(true);
         button.setBorderPainted(false);
+        button.setFont(this.getDefaultFont());
 
         return button;
     }
 
     private void setMenuButtons(List<String> menu, Runnable... runnables) {
-        this.subPanel.removeAll();
-
         for (int i = 0; i < menu.size(); i++) {
             JButton button = this.getDefaultJButton(menu.get(i));
 
             final int idx = i;
             button.addActionListener(e -> {
-                this.clearDisplay();
                 runnables[idx].run();
             });
 
             this.subPanel.add(button);
         }
+    }
+
+    private Font getDefaultFont() {
+        return new Font("고딕", Font.PLAIN, FONT_SIZE);
     }
 
     private void init() {
@@ -280,31 +455,45 @@ public class GUIGameView extends JFrame implements GameView {
         this.mainPanel.setLocation(0, 0);
         this.mainPanel.setBackground(Color.BLACK);
 
-        this.display.setPreferredSize(new Dimension(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN, HEIGHT));
-        this.display.setSize(new Dimension(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN, HEIGHT));
         this.display.setBackground(Color.BLACK);
         this.display.setForeground(Color.GREEN);
-        this.display.setFont(new Font("Courier", Font.PLAIN, 14));
+        this.display.setFont(this.getDefaultFont());
         this.display.setLocation(TEXT_AREA_MARGIN, TEXT_AREA_MARGIN);
         this.display.setEditable(false);
         this.display.setLineWrap(true);
 
-        this.mainPanel.add(this.display);
+        JScrollPane scrollPanel = new JScrollPane(this.display);
+
+        this.mainPanel.add(scrollPanel);
         add(this.mainPanel);
 
         this.subPanel.setSize(SUB_PANEL_WIDTH, HEIGHT);
         this.subPanel.setPreferredSize(new Dimension(SUB_PANEL_WIDTH, HEIGHT));
         this.subPanel.setLocation(MAIN_PANEL_WIDTH, 0);
         this.subPanel.setBackground(Color.BLACK);
+
         add(this.subPanel);
 
         setVisible(true);
     }
 
-
-    private void clearPanelContents() {
+    private void clearAllDisplay() {
         this.clearDisplay();
+        this.clearSubDisplay();
+    }
+
+    private void clearSubDisplay() {
         this.subPanel.removeAll();
-        repaint();
+    }
+
+    // paint : Direct Painting
+    // repaint : Requesting Redraw
+    // validate : Layout Management
+    // update : Painting Process
+    // updateUI : Look and Feel
+    private void repaintAll() {
+        this.display.repaint();
+        this.subPanel.revalidate();
+        this.subPanel.repaint();
     }
 }

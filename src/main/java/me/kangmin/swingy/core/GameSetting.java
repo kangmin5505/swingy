@@ -2,17 +2,17 @@ package me.kangmin.swingy.core;
 
 import me.kangmin.swingy.enums.ViewMode;
 
-public abstract class GameSetting {
-    protected ViewMode viewMode;
+public class GameSetting {
+    private ViewMode viewMode;
 
-    abstract void changeViewMode();
+    void changeViewMode() {
+        this.viewMode = (this.viewMode == ViewMode.CONSOLE) ? ViewMode.GUI : ViewMode.CONSOLE;
+    }
 
-    // ========== constructor ==========
     public GameSetting(ViewMode viewMode) {
         this.viewMode = viewMode;
     }
 
-    // ========== getter ==========
     public ViewMode getViewMode() {
         return this.viewMode;
     }

@@ -1,14 +1,14 @@
 package me.kangmin.swingy.entity.base;
 
-import me.kangmin.swingy.entity.Player;
+import me.kangmin.swingy.entity.Artifact;
 import me.kangmin.swingy.enums.PlayerType;
 
 import java.io.Serializable;
 
 public class Stat implements Serializable {
+    private static final long serialVersionUID = 4610203402227139939L;
     public static final int PURE_STAT_LIMIT = 27;
     public static final int MAX_STAT_LIMIT = 42;
-    private final Player player;
     private int codingSkill;
     private int mentalStrength;
     private int health;
@@ -18,22 +18,14 @@ public class Stat implements Serializable {
     private final int healthIncrementAmount;
 
     public void levelUp() {
-        this.codingSkill = this.codingSkill + this.codingSkillIncrementAmount;
-        this.mentalStrength = this.mentalStrength + this.mentalStrengthIncrementAmount;
-        this.health = this.health + this.healthIncrementAmount;
-
-        this.player.getArtifacts().values()
-                .forEach(artifact -> {
-                    this.codingSkill += artifact.getCodingSkill();
-                    this.mentalStrength += artifact.getMentalStrength();
-                    this.health += artifact.getHealth();
-                });
-
+        this.codingSkill = Math.min(this.codingSkill + this.codingSkillIncrementAmount, MAX_STAT_LIMIT);
+        this.mentalStrength = Math.min(this.mentalStrength + this.mentalStrengthIncrementAmount, MAX_STAT_LIMIT);
+        this.health = Math.min(this.health + this.healthIncrementAmount, MAX_STAT_LIMIT);
         this.currentHealth = this.health;
     }
 
-    public void decreaseHealth() {
-        this.currentHealth--;
+    public void decreaseHealth(int damage) {
+        this.currentHealth -= damage;
     }
 
     public boolean isDie() {
@@ -41,8 +33,7 @@ public class Stat implements Serializable {
     }
 
     // ========== constructor ==========
-    public Stat(Player player, PlayerType playerType) {
-        this.player = player;
+    public Stat(PlayerType playerType) {
         this.codingSkill = playerType.getCodingSkill();
         this.mentalStrength = playerType.getMentalStrength();
         this.health = playerType.getHealth();
@@ -78,4 +69,9 @@ public class Stat implements Serializable {
         return this.currentHealth;
     }
 
+    public void addArtifact(Artifact artifact) {
+        this.codingSkill = Math.min(this.codingSkill + artifact.getCodingSkill(), MAX_STAT_LIMIT);
+        this.mentalStrength = Math.min(this.mentalStrength + artifact.getMentalStrength(), MAX_STAT_LIMIT);
+        this.health = Math.min(this.health + artifact.getHealth(), MAX_STAT_LIMIT);
+    }
 }

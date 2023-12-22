@@ -10,33 +10,18 @@ import me.kangmin.swingy.dto.GameInfoDto;
 import me.kangmin.swingy.dto.PlayersDto;
 import me.kangmin.swingy.dto.SubjectDto;
 import me.kangmin.swingy.entity.base.Stage;
-import me.kangmin.swingy.enums.Page;
+import me.kangmin.swingy.enums.Step;
 import me.kangmin.swingy.enums.SubjectType;
 import me.kangmin.swingy.exception.GameException;
 import me.kangmin.swingy.view.helper.TextProvider;
 import me.kangmin.swingy.view.menu.*;
 
 import java.lang.reflect.Constructor;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ConsoleGameView implements GameView {
-    private final Map<Page, Supplier<Page>> PAGE_TO_PROC_MAP = Map.of(
-            Page.WELCOME, this::procWelcomePage,
-            Page.SETTING, this::procSettingPage,
-            Page.CREATE_NEW_PLAYER, this::procCreateNewPlayer,
-            Page.LOAD_GAME, this::procLoadGamePage,
-            Page.GAME_PLAY, this::procGamePlayPage,
-            Page.CHANGE_VIEW_MODE, this::procChangeViewMode,
-            Page.NEXT_STAGE, this::procNextStage,
-            Page.END, this::procEndPage,
-            Page.EXIT, this::procExit,
-            Page.RESET_DATA, this::procResetDataPage
-    );
-
+    private final Map<Step, Supplier<Step>> STEP_TO_PROC_MAP = new HashMap<>();
     private final Scanner scanner = new Scanner(System.in);
     private final GameManager gameManager;
     private final GameController gameController;
@@ -44,41 +29,82 @@ public class ConsoleGameView implements GameView {
     public ConsoleGameView(GameManager gameManager, GameController gameController) {
         this.gameManager = gameManager;
         this.gameController = gameController;
+
+        this.initStepToProcMap();
+    }
+
+    private void initStepToProcMap() {
+        STEP_TO_PROC_MAP.put(Step.WELCOME, this::procWelcomeStep);
+        STEP_TO_PROC_MAP.put(Step.SETTING, this::procSettingStep);
+        STEP_TO_PROC_MAP.put(Step.CREATE_NEW_PLAYER, this::procCreateNewPlayer);
+        STEP_TO_PROC_MAP.put(Step.LOAD_GAME, this::procLoadGameStep);
+        STEP_TO_PROC_MAP.put(Step.GAME_PLAY, this::procGamePlayStep);
+        STEP_TO_PROC_MAP.put(Step.CHANGE_VIEW_MODE, this::procChangeViewMode);
+        STEP_TO_PROC_MAP.put(Step.END, this::procEndStep);
+        STEP_TO_PROC_MAP.put(Step.EXIT, this::procExit);
+        STEP_TO_PROC_MAP.put(Step.RESET_DATA, this::procResetDataStep);
+        STEP_TO_PROC_MAP.put(Step.SAVE_GAME, this::procSaveGameStep);
+        STEP_TO_PROC_MAP.put(Step.GAME_OVER, this::procGameOverStep);
+    }
+
+    private Step procGameOverStep() {
+        String gameOverText = TextProvider.gameOver();
+        System.out.println(gameOverText);
+
+        System.out.printf("%d초 후에 메인으로 돌아갑니다.\n", TextProvider.WAITING_TIME / 1000);
+
+        try {
+            Thread.sleep(TextProvider.WAITING_TIME);
+        } catch (InterruptedException e) {
+            throw new GameException("게임을 종료하는데 실패하였습니다.");
+        }
+
+        return Step.WELCOME;
     }
 
     @Override
     public void run() {
-        Page page = Page.WELCOME;
+        Step step = Step.WELCOME;
 
-        while (page != Page.NONE) {
+        while (step != Step.NONE) {
             this.clearConsole();
-            page = this.PAGE_TO_PROC_MAP.get(page).get();
+            step = this.STEP_TO_PROC_MAP.get(step).get();
         }
     }
     // ========== private methods ==========
-    private Page procExit() {
+    private Step procSaveGameStep() {
+        String saveGameText = TextProvider.saveGame();
+        System.out.println(saveGameText);
+
+        this.printMenu(new SaveGameMenu());
+
+        return this.requestFromInput(SaveGameRequest.class);
+    }
+
+    private Step procExit() {
         String exitText = TextProvider.exit();
         System.out.println(exitText);
 
         System.exit(0);
 
-        return Page.NONE;
+        return Step.NONE;
     }
 
-    private Page procEndPage() {
+    private Step procEndStep() {
         String endingText = TextProvider.ending();
         System.out.println(endingText);
+        System.out.printf("%d초 후에 메인으로 돌아갑니다.\n", TextProvider.WAITING_TIME / 1000);
 
         try {
-            Thread.sleep(TextProvider.ENDING_TIME);
+            Thread.sleep(TextProvider.WAITING_TIME);
         } catch (InterruptedException e) {
             throw new GameException("게임을 종료하는데 실패하였습니다.");
         }
 
-        return Page.WELCOME;
+        return Step.WELCOME;
     }
 
-    private Page procGamePlayPage() {
+    private Step procGamePlayStep() {
         GameInfoDto gameInfoDto = this.requestFromCode(RequestHandlerCode.GAME_INFO);
 
         String stageText = TextProvider.stage(gameInfoDto);
@@ -94,7 +120,7 @@ public class ConsoleGameView implements GameView {
 
         Boolean isAllocatedSubject = this.requestFromInput(MovePlayerRequest.class);
 
-        return Boolean.TRUE.equals(isAllocatedSubject) ? this.procAllocatedSubject() : Page.GAME_PLAY;
+        return Boolean.TRUE.equals(isAllocatedSubject) ? this.procAllocatedSubject() : Step.GAME_PLAY;
     }
 
     private void printMenu(Menu menu) {
@@ -105,38 +131,38 @@ public class ConsoleGameView implements GameView {
                 .forEach(System.out::println);
     }
 
-    private Page procAllocatedSubject() {
+    private Step procAllocatedSubject() {
         this.printMenu(new StudyMethodMenu());
 
         SubjectDto subjectDto = this.requestFromInput(StudySubjectRequest.class);
 
         if (!subjectDto.isSuccess()) {
-            return Page.Game_OVER;
+            return Step.GAME_OVER;
         }
 
-        if (subjectDto.getSubjectType() == SubjectType.MAIN) {
+        int stage = subjectDto.getStage();
+        SubjectType subjectType = subjectDto.getSubjectType();
+        if (subjectType == SubjectType.MAIN && stage == Stage.FINAL_STAGE) {
+            return Step.END;
+        }
+
+        if (subjectType == SubjectType.MAIN) {
             subjectDto.getArtifact().ifPresent(artifact -> {
                 String artifactText = TextProvider.artifact(artifact);
                 System.out.println(artifactText);
 
+                this.printMenu(new ArtifactMenu());
+
                 this.requestFromInput(ArtifactRequest.class);
             });
-            int stage = subjectDto.getStage();
 
-            return stage == Stage.FINAL_STAGE ? Page.END : Page.NEXT_STAGE;
+            return this.requestFromCode(RequestHandlerCode.NEXT_STAGE);
         }
 
-        return Page.GAME_PLAY;
+        return Step.GAME_PLAY;
     }
 
-    private Page procNextStage() {
-        String saveGameText = TextProvider.saveGame();
-        System.out.println(saveGameText);
-
-        return this.requestFromInput(SaveGameRequest.class);
-    }
-
-    private Page procLoadGamePage() {
+    private Step procLoadGameStep() {
         PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.SAVED_GAME_LIST);
 
         TextProvider.playerList(playersDto)
@@ -145,16 +171,16 @@ public class ConsoleGameView implements GameView {
         return this.requestFromInput(LoadGameRequest.class);
     }
 
-    private Page procCreateNewPlayer() {
+    private Step procCreateNewPlayer() {
         PlayersDto playersDto = this.requestFromCode(RequestHandlerCode.NEW_PLAYER_LIST);
 
         TextProvider.playerList(playersDto)
                     .forEach(System.out::println);
 
 
-        Page page = this.requestFromInput(ChooseNewPlayerRequest.class);
-        if (page == Page.WELCOME) {
-            return Page.WELCOME;
+        Step step = this.requestFromInput(ChooseNewPlayerRequest.class);
+        if (step == Step.WELCOME) {
+            return Step.WELCOME;
         }
 
         String inputPlayerNameText = TextProvider.inputPlayerName();
@@ -163,7 +189,7 @@ public class ConsoleGameView implements GameView {
         return this.requestFromInput(SetNewPlayerNameRequest.class);
     }
 
-    private Page procWelcomePage() {
+    private Step procWelcomeStep() {
         String introText = TextProvider.intro();
         System.out.println(introText);
 
@@ -176,22 +202,24 @@ public class ConsoleGameView implements GameView {
         System.out.flush();
     }
 
-    private Page procSettingPage() {
+    private Step procSettingStep() {
         this.printMenu(new SettingMenu());
 
         return this.requestFromInput(SettingRequest.class);
     }
 
-    private Page procResetDataPage() {
+    private Step procResetDataStep() {
         String resetDataText = TextProvider.resetData();
         System.out.println(resetDataText);
+
+        this.printMenu(new ResetDataMenu());
 
         return this.requestFromInput(ResetDataRequest.class);
     }
 
-    private Page procChangeViewMode() {
-        this.gameManager.procChangeViewMode();
-        return Page.NONE;
+    private Step procChangeViewMode() {
+        this.gameManager.changeViewMode();
+        return Step.NONE;
     }
 
     private <T extends Request, S> S requestFromInput(Class<T> clazz) {
@@ -204,7 +232,7 @@ public class ConsoleGameView implements GameView {
             if (isFailure) {
                 System.out.println(mismatchText);
             }
-            System.out.println(inputText);
+            System.out.print(inputText);
 
             String input = this.getInput();
             response = this.request(input, clazz);
@@ -244,6 +272,10 @@ public class ConsoleGameView implements GameView {
 
     private <S> S requestFromCode(RequestHandlerCode code) {
         Response<S> response = this.gameController.request(code);
+        if (response.getResponseCode() == ResponseCode.FAILURE) {
+            throw new GameException(response.getMessage());
+        }
+
         return response.getData();
     }
 }

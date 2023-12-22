@@ -15,7 +15,7 @@ import me.kangmin.swingy.dto.PlayersDto;
 import me.kangmin.swingy.dto.SubjectDto;
 import me.kangmin.swingy.dto.SubjectResultDto;
 import me.kangmin.swingy.entity.Artifact;
-import me.kangmin.swingy.enums.Page;
+import me.kangmin.swingy.enums.Step;
 import me.kangmin.swingy.exception.GameException;
 import me.kangmin.swingy.service.GameService;
 import me.kangmin.swingy.view.menu.element.MoveElement;
@@ -26,7 +26,7 @@ import java.util.Set;
 public class GameController {
 
     private final GameService gameService;
-    private final static Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private final Map<RequestHandlerCode, IntegerArgumentRequestHandler<?>> integerArgumentRequestHandler = Map.of(
             RequestHandlerCode.WELCOME_MENU, this::handleWelcomeMenu,
             RequestHandlerCode.SETTING_MENU, this::handleSettingMenu,
@@ -38,20 +38,99 @@ public class GameController {
             RequestHandlerCode.LOAD_GAME, this::handleLoadGame,
             RequestHandlerCode.RESET_DATA, this::handleResetData
     );
-
     private final Map<RequestHandlerCode, StringArgumentRequestHandler<?>> stringArgumentRequestHandler = Map.of(
             RequestHandlerCode.CREATE_PLAYER_NAME, this::handleSetNewPlayerName
     );
     private final Map<RequestHandlerCode, NoArgumentRequestHandler<?>> noArgumentRequestHandler = Map.of(
             RequestHandlerCode.NEW_PLAYER_LIST, this::handleNewPlayerList,
             RequestHandlerCode.GAME_INFO, this::handleGameInfo,
-            RequestHandlerCode.SAVED_GAME_LIST, this::handleSavedGameList
+            RequestHandlerCode.SAVED_GAME_LIST, this::handleSavedGameList,
+            RequestHandlerCode.NEXT_STAGE, this::handleNextStage
     );
+
+    private Step handleNextStage() {
+        this.gameService.nextStage();
+
+        return Step.SAVE_GAME;
+    }
 
     public GameController(GameService gameService) {
         this.gameService = gameService;
     }
 
+    private Step handleResetData(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.resetData(idx);
+    }
+
+    private Step handleLoadGame(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.loadGame(idx);
+    }
+
+    private Step handleSaveGame(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.saveGame(idx);
+    }
+
+    private Void handleArtifactAction(Integer input) {
+        int idx = input - 1;
+        this.gameService.artifactAction(idx);
+
+        return null;
+    }
+
+    private SubjectDto handleStudySubject(Integer input) {
+        int idx = input - 1;
+
+        SubjectResultDto subjectResultDto = this.gameService.studySubject(idx);
+        Artifact artifact = this.gameService.getArtifact();
+
+        return new SubjectDto(subjectResultDto, artifact);
+    }
+
+    private Boolean handleMovePlayer(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.movePlayer(MoveElement.values()[idx]);
+    }
+
+    private Step handleSetNewPlayerName(String input) {
+        return this.gameService.setNewPlayerName(input);
+    }
+
+    private Step handleChooseNewPlayer(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.chooseNewPlayer(idx);
+    }
+
+    private Step handleSettingMenu(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.settingMenu(idx);
+    }
+
+    private Step handleWelcomeMenu(Integer input) {
+        int idx = input - 1;
+
+        return this.gameService.welcomeMenu(idx);
+    }
+
+    private PlayersDto handleNewPlayerList() {
+        return PlayersDto.ofPlayerTypes(gameService.getNewPlayerList());
+    }
+
+    private PlayersDto handleSavedGameList() {
+        return PlayersDto.ofGames(gameService.getSavedGames());
+    }
+
+    private GameInfoDto handleGameInfo() {
+        return new GameInfoDto(this.gameService.getGame());
+    }
 
     @SuppressWarnings("unchecked")
     public <T> Response<T> request(Request request) {
@@ -101,69 +180,5 @@ public class GameController {
                            .message(e.getMessage())
                            .build();
         }
-    }
-
-    private Page handleResetData(Integer input) {
-        int idx = input - 1;
-        return this.gameService.resetData(idx);
-    }
-
-    private Page handleLoadGame(Integer input) {
-        int idx = input - 1;
-        return this.gameService.loadGame(idx);
-    }
-
-    private Page handleSaveGame(Integer input) {
-        int idx = input - 1;
-        return this.gameService.saveGame(idx);
-    }
-
-    private Void handleArtifactAction(Integer input) {
-        int idx = input - 1;
-        this.gameService.artifactAction(idx);
-        return null;
-    }
-
-    private SubjectDto handleStudySubject(Integer input) {
-        int idx = input - 1;
-
-        SubjectResultDto subjectResultDto = this.gameService.studySubject(idx);
-        Artifact artifact = this.gameService.getArtifact();
-
-        return new SubjectDto(subjectResultDto, artifact);
-    }
-
-    private Boolean handleMovePlayer(Integer input) {
-        int idx = input - 1;
-        return this.gameService.movePlayer(MoveElement.values()[idx]);
-    }
-
-    private GameInfoDto handleGameInfo() {
-        return new GameInfoDto(this.gameService.getGame());
-    }
-
-    private Page handleSetNewPlayerName(String input) {
-        return this.gameService.setNewPlayerName(input);
-    }
-
-    private Page handleChooseNewPlayer(Integer input) {
-        int idx = input - 1;
-        return this.gameService.chooseNewPlayer(idx);
-    }
-    private PlayersDto handleNewPlayerList() {
-        return PlayersDto.ofPlayerTypes(gameService.getNewPlayerList());
-    }
-    private PlayersDto handleSavedGameList() {
-        return PlayersDto.ofGames(gameService.getSavedGameList());
-    }
-
-    private Page handleSettingMenu(Integer input) {
-        int idx = input - 1;
-        return this.gameService.settingMenu(idx);
-    }
-
-    private Page handleWelcomeMenu(Integer input) {
-        int idx = input - 1;
-        return this.gameService.welcomeMenu(idx);
     }
 }

@@ -13,6 +13,7 @@ import java.util.Map;
 
 public class Player implements Serializable {
 
+    private static final long serialVersionUID = -1097161337268327065L;
     private Long id;
     private String name;
     private final String type;
@@ -20,8 +21,8 @@ public class Player implements Serializable {
     private final Stat stat;
     private final Map<ArtifactType, Artifact> artifacts = new HashMap<>();
 
-    public void decreaseHealth() {
-        this.stat.decreaseHealth();
+    public void decreaseHealth(int damage) {
+        this.stat.decreaseHealth(damage);
     }
 
     public boolean isDie() {
@@ -31,16 +32,11 @@ public class Player implements Serializable {
     // ========== constructor ==========
     public Player(PlayerType playerType) {
         this.type =  playerType.getType();
-        this.level = new Level();
-        this.stat = new Stat(this, playerType);
+        this.stat = new Stat(playerType);
+        this.level = new Level(this.stat);
     }
 
     // ========== getter ==========
-
-    public Long getId() {
-        return this.id;
-    }
-
     public String getType() {
         return this.type;
     }
@@ -76,6 +72,7 @@ public class Player implements Serializable {
 
     public void addArtifact(Artifact artifact) {
         this.artifacts.put(artifact.getArtifactType(), artifact);
+        this.stat.addArtifact(artifact);
     }
 
     public Map<ArtifactType, Artifact> getArtifacts() {

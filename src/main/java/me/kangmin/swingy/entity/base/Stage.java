@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 public class Stage implements Serializable {
-    private int stage;
+    private static final long serialVersionUID = -6412260135855416326L;
+    private int stageLevel;
     public final static int FINAL_STAGE = 7;
     private static final Map<Integer, String> STAGE_BOSS_MAP = Map.of(
             0, "Piscine",
@@ -18,20 +19,20 @@ public class Stage implements Serializable {
     );
 
     public void nextStage() {
-        this.stage++;
+        this.stageLevel++;
     }
     // ========== constructor ==========
     public Stage() {
-        this.stage = 0;
+        this.stageLevel = 0;
     }
 
     // ========== getter ==========
-    public int getStage() {
-        return this.stage;
+    public int getStageLevel() {
+        return this.stageLevel;
     }
 
     public String getBossName() {
-        return STAGE_BOSS_MAP.get(this.stage);
+        return STAGE_BOSS_MAP.get(this.stageLevel);
     }
 
     public int getTotalStage() {
@@ -39,11 +40,6 @@ public class Stage implements Serializable {
     }
 
     public int getTotalSubSubjectCnt() {
-        return (this.stage - 1) * 5 + 10 - (this.stage % 2);
-
-    }
-
-    public boolean isFinalStage() {
-        return this.stage == FINAL_STAGE;
+        return this.stageLevel;
     }
 }

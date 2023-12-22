@@ -22,8 +22,10 @@ public class PlayerMenu implements Menu {
                     player.getLevel());
             this.menuElements[i] = new PlayerElement(description);
         }
+
         this.menuElements[players.size()] = new PlayerElement("뒤로가기\n");
     }
+
 
     @Override
     public MenuElement[] getElements() {

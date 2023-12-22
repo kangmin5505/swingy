@@ -5,6 +5,7 @@ import me.kangmin.swingy.enums.PlayerType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public interface GameRepository {
     List<PlayerType> allNewPlayer = Arrays.asList(PlayerType.values());
@@ -21,5 +22,5 @@ public interface GameRepository {
 
     void resetData();
 
-    void releaseData();
+    Optional<Game> findGameByIndex(int idx);
 }

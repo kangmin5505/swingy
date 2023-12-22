@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Random;
 
 public class GameMap implements Serializable {
+    private static final long serialVersionUID = 5408268936227484672L;
+    private final Stage stage;
     private int mapSize;
     private final Player player;
     private Coordinate playerCoordinate;
@@ -33,8 +35,9 @@ public class GameMap implements Serializable {
     }
 
     // ========== constructor ==========
-    public GameMap(Player player) {
+    public GameMap(Player player, Stage stage) {
         this.player = player;
+        this.stage = stage;
         this.mapSize = this.calculateMapSize();
         this.setEntityCoordinates();
     }
@@ -45,7 +48,8 @@ public class GameMap implements Serializable {
         this.playerCoordinate = new Coordinate(this.mapSize / 2, this.mapSize / 2);
         this.mainSubjectCoordinate = new Coordinate(this.mapSize - 1, 0);
 
-        for (int y = 0; y < this.mapSize; y++) {
+
+        for (int y = 0; y < this.stage.getStageLevel(); y++) {
             this.subSubjectCoordinates.add(this.getSubSubjectCoordinate(y));
         }
     }
@@ -91,7 +95,7 @@ public class GameMap implements Serializable {
     // ========== getter ==========
 
     public int getMapSize() {
-        return this.calculateMapSize();
+        return this.mapSize;
     }
 
     public Coordinate getPlayerCoordinate() {

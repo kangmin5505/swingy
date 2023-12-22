@@ -14,7 +14,7 @@ public class SubjectDto {
     public SubjectDto(SubjectResultDto subjectResultDto, Artifact artifact) {
         this.subjectType = subjectResultDto.getSubjectType();
         this.isSuccess = subjectResultDto.isSuccess();
-        this.stage = subjectResultDto.getStage();
+        this.stage = subjectResultDto.getStageLevel();
         this.artifact = artifact;
     }
     public SubjectType getSubjectType() {

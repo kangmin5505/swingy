@@ -5,12 +5,12 @@ import me.kangmin.swingy.enums.SubjectType;
 public class SubjectResultDto {
     private final boolean isSuccess;
     private final SubjectType subjectType;
-    private final int stage;
+    private final int stageLevel;
 
-    public SubjectResultDto(boolean isSuccess, SubjectType subjectType, int stage) {
+    public SubjectResultDto(boolean isSuccess, SubjectType subjectType, int stageLevel) {
         this.isSuccess = isSuccess;
         this.subjectType = subjectType;
-        this.stage = stage;
+        this.stageLevel = stageLevel;
     }
 
     public boolean isSuccess() {
@@ -21,7 +21,7 @@ public class SubjectResultDto {
         return subjectType;
     }
 
-    public int getStage() {
-        return stage;
+    public int getStageLevel() {
+        return stageLevel;
     }
 }

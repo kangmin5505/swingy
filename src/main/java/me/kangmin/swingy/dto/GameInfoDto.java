@@ -36,7 +36,7 @@ public class GameInfoDto {
     }
 
     public int getStage() {
-        return this.stage.getStage();
+        return this.stage.getStageLevel();
     }
 
     public String getBossName() {

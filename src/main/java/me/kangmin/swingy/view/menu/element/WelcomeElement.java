@@ -1,26 +1,26 @@
 package me.kangmin.swingy.view.menu.element;
 
-import me.kangmin.swingy.enums.Page;
+import me.kangmin.swingy.enums.Step;
 
 public enum WelcomeElement implements MenuElement {
-    NEW_GAME("새로운 게임 시작", Page.CREATE_NEW_PLAYER),
-    LOAD_GAME("이전 게임 불러오기", Page.LOAD_GAME),
-    SETTING("설정", Page.SETTING),
-    EXIT("게임 종료", Page.EXIT);
+    NEW_GAME("새로운 게임 시작", Step.CREATE_NEW_PLAYER),
+    LOAD_GAME("이전 게임 불러오기", Step.LOAD_GAME),
+    SETTING("설정", Step.SETTING),
+    EXIT("게임 종료", Step.EXIT);
 
     private final String description;
-    private final Page page;
+    private final Step step;
 
-    WelcomeElement(String description, Page page) {
+    WelcomeElement(String description, Step step) {
         this.description = description;
-        this.page = page;
+        this.step = step;
     }
     @Override
     public String getDescription() {
         return this.description;
     }
 
-    public Page getPage() {
-        return page;
+    public Step getPage() {
+        return step;
     }
 }
