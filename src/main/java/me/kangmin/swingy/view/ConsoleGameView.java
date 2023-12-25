@@ -31,7 +31,7 @@ public class ConsoleGameView implements GameView {
         this.gameController = gameController;
 
         this.initStepToProcMap();
-    }
+}
 
     private void initStepToProcMap() {
         STEP_TO_PROC_MAP.put(Step.WELCOME, this::procWelcomeStep);

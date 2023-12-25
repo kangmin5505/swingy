@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class GUIGameView extends JFrame implements GameView {
-    private static final int FONT_SIZE = 16;
-    private final int WIDTH = 1400;
+    private static final int FONT_SIZE = 14;
+    private final int WIDTH = 1500;
     private final double RATIO = (double) 9 / 16;
     private final int HEIGHT =  (int) (WIDTH * RATIO);
     private final int MAIN_PANEL_WIDTH = WIDTH * 4 / 5;
@@ -439,7 +439,7 @@ public class GUIGameView extends JFrame implements GameView {
     }
 
     private Font getDefaultFont() {
-        return new Font("고딕", Font.PLAIN, FONT_SIZE);
+        return new Font(Font.MONOSPACED, Font.PLAIN, FONT_SIZE);
     }
 
     private void init() {
@@ -455,6 +455,8 @@ public class GUIGameView extends JFrame implements GameView {
         this.mainPanel.setLocation(0, 0);
         this.mainPanel.setBackground(Color.BLACK);
 
+        this.display.setSize(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN * 2, HEIGHT + HEIGHT / 2);
+        this.display.setPreferredSize(new Dimension(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN * 2, HEIGHT + HEIGHT / 2));
         this.display.setBackground(Color.BLACK);
         this.display.setForeground(Color.GREEN);
         this.display.setFont(this.getDefaultFont());
@@ -463,6 +465,8 @@ public class GUIGameView extends JFrame implements GameView {
         this.display.setLineWrap(true);
 
         JScrollPane scrollPanel = new JScrollPane(this.display);
+        scrollPanel.setSize(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN * 2, HEIGHT - TEXT_AREA_MARGIN * 2);
+        scrollPanel.setPreferredSize(new Dimension(MAIN_PANEL_WIDTH - TEXT_AREA_MARGIN * 2, HEIGHT - TEXT_AREA_MARGIN * 2));
 
         this.mainPanel.add(scrollPanel);
         add(this.mainPanel);

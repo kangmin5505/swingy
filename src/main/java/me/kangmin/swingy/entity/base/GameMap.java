@@ -49,16 +49,19 @@ public class GameMap implements Serializable {
         this.mainSubjectCoordinate = new Coordinate(this.mapSize - 1, 0);
 
 
-        for (int y = 0; y < this.stage.getStageLevel(); y++) {
-            this.subSubjectCoordinates.add(this.getSubSubjectCoordinate(y));
+        for (int i = 0; i < this.stage.getStageLevel(); i++) {
+            this.subSubjectCoordinates.add(this.getSubSubjectCoordinate());
         }
     }
 
-    private Coordinate getSubSubjectCoordinate(int y) {
+    private Coordinate getSubSubjectCoordinate() {
         Random random = new Random();
         int x;
+        int y;
+
         do {
             x = random.nextInt(this.mapSize);
+            y = random.nextInt(this.mapSize);
         } while ((x == this.mainSubjectCoordinate.getX() && y == this.mainSubjectCoordinate.getY()) ||
                 (x == this.playerCoordinate.getX() && y == this.playerCoordinate.getY()));
 
